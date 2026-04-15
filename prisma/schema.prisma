@@ -2,6 +2,7 @@
 // Phase 1：知识库
 // Phase 2：embedding + 聊天
 // Phase 2.5：todo + 娱乐小工具（零食/餐厅/菜品）
+// Phase 3：移民方案智能评估器（Assessment + PolicyCache）
 
 generator client {
   provider = "prisma-client-js"
@@ -157,4 +158,92 @@ model Dish {
   createdAt  DateTime @default(now())
 
   @@index([type])
+}
+
+// ═══════════════════════════════════════════
+// 移民方案智能评估器
+// ═══════════════════════════════════════════
+
+/// 移民评估 —— 顾问为客户做的完整背景评估 + Plan A/B/C
+model Assessment {
+  id String @id @default(cuid())
+
+  // —— 客户基础（CRM 升级预留） ——
+  clientName      String?
+  clientEmail     String?
+  clientPhone     String?
+  age             Int
+  nationality     String?
+  maritalStatus   String // SINGLE | MARRIED | DE_FACTO
+  partnerEligible Boolean @default(false) // 配偶是否可加分（职业评估+英语均达标）
+
+  // —— 学历 ——
+  highestDegree   String // DIPLOMA | BACHELOR | MASTER | PHD
+  fieldOfStudy    String
+  degreeCountry   String // "AU" 或其他国家代码
+  graduationYear  Int
+  gpa             Float?
+  australianStudy Boolean @default(false) // 是否有澳洲 2+ 年学习
+  regionalStudy   Boolean @default(false) // 是否在偏远地区学习
+
+  // —— 工作经验（JSON 数组） ——
+  workExperience String // JSON: [{jobTitle, company, country, startDate, endDate, hoursPerWeek}]
+
+  // —— 英语 ——
+  englishTest      String? // IELTS | PTE | TOEFL | OET
+  englishOverall   Float?
+  englishListening Float?
+  englishReading   Float?
+  englishWriting   Float?
+  englishSpeaking  Float?
+  englishTestDate  DateTime?
+
+  // —— 加分项 ——
+  hasNAATI            Boolean @default(false)
+  hasProfessionalYear Boolean @default(false)
+
+  // —— 偏好 ——
+  targetState     String? // ANY | NSW | VIC | QLD | SA | WA | TAS | NT | ACT
+  willingRegional Boolean @default(true)
+  budgetTier      String? // LOW | MEDIUM | HIGH
+  urgency         String? // LOW | NORMAL | HIGH
+
+  // —— 计算结果（缓存） ——
+  calculatedPoints189    Int? // 189 总分
+  calculatedPoints190    Int? // 190 总分 = 189 + 5
+  calculatedPoints491    Int? // 491 总分 = 189 + 15
+  pointsBreakdown        String? // JSON: 分项明细
+  recommendedOccupations String? // JSON: [{code, name, assessmentBody, confidence, reason}]
+  pathA                  String? // JSON: PathPlan
+  pathB                  String? // JSON: PathPlan
+  pathC                  String? // JSON: PathPlan
+  stateComparison        String? // JSON: [{state, status, points, timeline}]
+  recentPolicyUpdates    String? // JSON: 最近 30 天变化摘要
+  citedKnowledgeIds      String? // JSON: [knowledgeEntryId] 引用的 SOP
+  tokensUsed             Int? // 本次评估消耗的 token 数
+
+  // —— 元信息 ——
+  consultantNotes String? // Lydia 手写备注（可编辑）
+  dataFreshness   DateTime? // 政策数据抓取时间
+  status          String    @default("DRAFT") // DRAFT | PROCESSING | DONE | FAILED
+  errorMessage    String? // 生成失败时的错误信息
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([createdAt])
+  @@index([clientName])
+  @@index([status])
+}
+
+/// 政策缓存 —— 避免重复调用 OpenAI web search
+model PolicyCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique // 规范化查询字符串的 hash
+  query     String // 原始查询字符串（可读）
+  content   String // 抓取的内容
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([cacheKey])
+  @@index([expiresAt])
 }
