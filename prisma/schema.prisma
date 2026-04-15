@@ -1,0 +1,37 @@
+// 刘丽航专属留学 App - 数据库 schema
+// Phase 1：只包含知识库相关的表；Phase 3 再加 User/Student 相关
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// 知识条目 —— 顾问录入的每一段专业知识
+model KnowledgeEntry {
+  id          String   @id @default(cuid())
+  title       String
+  contentMd   String   // Markdown 正文
+  category    String?  // 大分类：如 "500签证"、"院校信息"、"移民政策"
+  visibility  String   @default("PRIVATE") // PRIVATE | STUDENT_VISIBLE
+  sourceUrl   String?  // 来源链接（若有）
+  tags        Tag[]    @relation("EntryTags")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([updatedAt])
+}
+
+/// 标签 —— 多对多关联知识条目
+model Tag {
+  id      String           @id @default(cuid())
+  name    String           @unique
+  color   String?          // 可选颜色，UI 展示用
+  entries KnowledgeEntry[] @relation("EntryTags")
+
+  @@index([name])
+}

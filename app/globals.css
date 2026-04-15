@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 简单的 markdown 正文样式，详情页用 */
+.prose-simple h1 { @apply text-2xl font-bold mt-6 mb-3; }
+.prose-simple h2 { @apply text-xl font-bold mt-5 mb-2; }
+.prose-simple h3 { @apply text-lg font-bold mt-4 mb-2; }
+.prose-simple p  { @apply my-3 leading-7; }
+.prose-simple ul { @apply list-disc pl-6 my-3; }
+.prose-simple ol { @apply list-decimal pl-6 my-3; }
+.prose-simple code {
+  @apply bg-slate-100 px-1.5 py-0.5 rounded text-sm text-rose-600;
+}
+.prose-simple pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+.prose-simple pre code { @apply bg-transparent text-inherit p-0; }
+.prose-simple blockquote {
+  @apply border-l-4 border-slate-300 pl-4 italic text-slate-600 my-3;
+}
