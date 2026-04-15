@@ -30,8 +30,9 @@ export type RagResult = {
   totalTokens: number;
 };
 
-/** 相似度下限——分数低于此值的不作为上下文（避免无关内容干扰） */
-const MIN_SIMILARITY_THRESHOLD = 0.2;
+/** 相似度下限——分数低于此值的不作为上下文（避免无关内容干扰）
+ *  对中文 text-embedding-3-small 来说，0.1-0.15 是合理阈值 */
+const MIN_SIMILARITY_THRESHOLD = 0.12;
 
 /** 检索多少条作为上下文 */
 const DEFAULT_TOP_K = 5;
@@ -72,6 +73,17 @@ export async function retrieve(
   });
 
   if (entries.length === 0) {
+    // 检查总条目数——如果有条目但没有 embedding，就是没跑 db:embed
+    const totalCount = await prisma.knowledgeEntry.count(
+      options.onlyStudentVisible
+        ? { where: { visibility: "STUDENT_VISIBLE" } }
+        : undefined
+    );
+    if (totalCount > 0) {
+      console.warn(
+        `[RAG] 知识库有 ${totalCount} 条内容，但都没有 embedding。请在服务器上运行: npm run db:embed`
+      );
+    }
     return [];
   }
 
@@ -107,11 +119,16 @@ function buildSystemPrompt(retrieved: Retrieved[]): string {
   if (retrieved.length === 0) {
     return `你是刘丽航的专业澳洲留学/移民咨询助手。
 
-当前知识库中**没有**与用户问题直接相关的条目。请：
-1. 诚实告知用户"知识库中没有找到相关信息"
-2. 基于你自己的常识给出**谨慎的**一般性回答，但明确标注这不是来自知识库
-3. 建议用户直接查询 Home Affairs 官网或和 Lydia 本人沟通
-4. 涉及具体数字（费用、分数、日期）时务必提醒以官网最新为准`;
+⚠️ 系统提示：当前知识库中没有找到与用户问题语义相近的条目。可能原因：
+- 问题确实超出当前知识库范围
+- 或服务器的 embedding 向量未生成（请在服务器运行 npm run db:embed）
+
+请按以下原则回答：
+1. 先诚实告知"知识库里没找到相关条目"
+2. 如果是常见的签证/留学问题，基于通用知识给出**简短的**指引，并明确标注这不来自知识库
+3. 建议查询 Home Affairs 官网或联系 Lydia 本人
+4. 涉及具体数字（费用、分数、日期）时务必提醒"以官网最新为准"
+5. 不要编造具体数字`;
   }
 
   const contextBlocks = retrieved

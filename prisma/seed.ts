@@ -5,9 +5,11 @@
 
 import { PrismaClient } from "@prisma/client";
 import { VISAS } from "./seed/visas";
+import { VISAS_V2 } from "./seed/visas-v2";
 import { UNIVERSITIES } from "./seed/universities";
 import { SNACKS } from "./seed/snacks";
 import { RESTAURANTS } from "./seed/restaurants";
+import { RESTAURANTS_V2 } from "./seed/restaurants-v2";
 import { DISHES } from "./seed/dishes";
 import type { SeedEntry } from "./seed/types";
 
@@ -97,11 +99,12 @@ async function seedSnacks() {
 // 餐厅种子
 // ═══════════════════════════════════════════
 async function seedRestaurants() {
-  console.log(`\n▶ 开始导入 悉尼餐厅（${RESTAURANTS.length} 条）`);
+  const allRestaurants = [...RESTAURANTS, ...RESTAURANTS_V2];
+  console.log(`\n▶ 开始导入 悉尼餐厅（${allRestaurants.length} 条）`);
   let created = 0;
   let skipped = 0;
 
-  for (const r of RESTAURANTS) {
+  for (const r of allRestaurants) {
     const existing = await prisma.restaurant.findFirst({
       where: { name: r.name },
     });
@@ -163,6 +166,7 @@ async function main() {
   console.log("═════════════════════════════════════════");
 
   const visa = await seedKnowledgeEntries(VISAS, "签证知识");
+  const visaV2 = await seedKnowledgeEntries(VISAS_V2, "签证知识（深度扩充 v2）");
   const uni = await seedKnowledgeEntries(UNIVERSITIES, "院校信息");
   const snacks = await seedSnacks();
   const restaurants = await seedRestaurants();
@@ -170,12 +174,14 @@ async function main() {
 
   const totalCreated =
     visa.created +
+    visaV2.created +
     uni.created +
     snacks.created +
     restaurants.created +
     dishes.created;
   const totalSkipped =
     visa.skipped +
+    visaV2.skipped +
     uni.skipped +
     snacks.skipped +
     restaurants.skipped +
