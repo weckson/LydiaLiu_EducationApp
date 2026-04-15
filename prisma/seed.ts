@@ -11,6 +11,7 @@ import { SNACKS } from "./seed/snacks";
 import { RESTAURANTS } from "./seed/restaurants";
 import { RESTAURANTS_V2 } from "./seed/restaurants-v2";
 import { DISHES } from "./seed/dishes";
+import { DISHES_V2 } from "./seed/dishes-v2";
 import type { SeedEntry } from "./seed/types";
 
 const prisma = new PrismaClient();
@@ -132,11 +133,12 @@ async function seedRestaurants() {
 // 菜品种子
 // ═══════════════════════════════════════════
 async function seedDishes() {
-  console.log(`\n▶ 开始导入 家常菜（${DISHES.length} 道）`);
+  const allDishes = [...DISHES, ...DISHES_V2];
+  console.log(`\n▶ 开始导入 家常菜（${allDishes.length} 道）`);
   let created = 0;
   let skipped = 0;
 
-  for (const d of DISHES) {
+  for (const d of allDishes) {
     const existing = await prisma.dish.findFirst({
       where: { name: d.name },
     });
