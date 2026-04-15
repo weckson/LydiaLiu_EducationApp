@@ -6,6 +6,8 @@
 import { PrismaClient } from "@prisma/client";
 import { VISAS } from "./seed/visas";
 import { VISAS_V2 } from "./seed/visas-v2";
+import { MIGRATION_SOPS } from "./seed/migration-sops";
+import { STUDY_SOPS } from "./seed/study-sops";
 import { UNIVERSITIES } from "./seed/universities";
 import { SNACKS } from "./seed/snacks";
 import { RESTAURANTS } from "./seed/restaurants";
@@ -169,6 +171,14 @@ async function main() {
 
   const visa = await seedKnowledgeEntries(VISAS, "签证知识");
   const visaV2 = await seedKnowledgeEntries(VISAS_V2, "签证知识（深度扩充 v2）");
+  const migSops = await seedKnowledgeEntries(
+    MIGRATION_SOPS,
+    "移民 SOP 与实战经验"
+  );
+  const studySops = await seedKnowledgeEntries(
+    STUDY_SOPS,
+    "留学 SOP 与实战经验"
+  );
   const uni = await seedKnowledgeEntries(UNIVERSITIES, "院校信息");
   const snacks = await seedSnacks();
   const restaurants = await seedRestaurants();
@@ -177,6 +187,8 @@ async function main() {
   const totalCreated =
     visa.created +
     visaV2.created +
+    migSops.created +
+    studySops.created +
     uni.created +
     snacks.created +
     restaurants.created +
@@ -184,6 +196,8 @@ async function main() {
   const totalSkipped =
     visa.skipped +
     visaV2.skipped +
+    migSops.skipped +
+    studySops.skipped +
     uni.skipped +
     snacks.skipped +
     restaurants.skipped +
