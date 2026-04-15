@@ -64,8 +64,7 @@ export function createOpenAIProvider(): LLMProvider {
       messages: ChatMessage[],
       options?: ChatOptions
     ): Promise<ChatResult> {
-      // GPT-5 系列和 o1/o3 系列是 reasoning models，
-      // 参数名不同，且不支持自定义 temperature
+      // GPT-5 系列和 o1/o3/o4 系列是 reasoning models
       const isReasoningModel =
         chatModel.startsWith("gpt-5") ||
         chatModel.startsWith("o1") ||
@@ -81,8 +80,14 @@ export function createOpenAIProvider(): LLMProvider {
       };
 
       if (isReasoningModel) {
-        // 新一代 reasoning 模型：max_completion_tokens、不支持 temperature
-        params.max_completion_tokens = options?.maxTokens ?? 2000;
+        // ⚠️ 关键：max_completion_tokens 包含 reasoning tokens + 输出 tokens
+        // 如果设得太低（比如 2000），reasoning 阶段就会把 token 用光，
+        // 导致最终输出为空字符串。必须留足空间。
+        params.max_completion_tokens = options?.maxTokens ?? 8000;
+
+        // ⚠️ 对 RAG 问答这种"基于上下文作答"的场景，用 minimal
+        // 让模型少思考多输出，响应更快、几乎不会出现空回答
+        params.reasoning_effort = "minimal";
       } else {
         // gpt-4o / gpt-4 / gpt-3.5 等旧模型
         params.max_tokens = options?.maxTokens ?? 1500;
@@ -92,6 +97,21 @@ export function createOpenAIProvider(): LLMProvider {
       const response = await client.chat.completions.create(params);
 
       const content = response.choices[0]?.message?.content ?? "";
+      const finishReason = response.choices[0]?.finish_reason;
+
+      // 检测空回答：reasoning models 偶尔会因为 token 耗尽或被截断返回空
+      if (!content.trim()) {
+        const reasoning = (response.choices[0]?.message as any)?.reasoning;
+        throw new Error(
+          `模型返回空回答（finish_reason: ${finishReason}）。` +
+            (finishReason === "length"
+              ? " 原因是 max_completion_tokens 用完。请增加 token 上限或换更强的模型。"
+              : reasoning
+                ? " 模型内部思考完成了但没有输出，请重试或换 gpt-4o-mini。"
+                : " 请重试一次，或检查问题是否太过复杂。")
+        );
+      }
+
       return {
         content,
         promptTokens: response.usage?.prompt_tokens ?? 0,

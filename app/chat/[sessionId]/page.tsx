@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { sendMessage, deleteSession } from "@/lib/chat-actions";
 import { renderMarkdown } from "@/lib/markdown";
+import { ChatInput } from "@/components/ChatInput";
 
 export const dynamic = "force-dynamic";
 
@@ -82,31 +83,12 @@ export default async function ChatSessionPage({
         ))}
       </div>
 
-      {/* 输入框 */}
+      {/* 输入框（带 pending 加载动画） */}
       <form
         action={sendWithId}
         className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 z-10"
       >
-        <div className="elegant-card p-3 shadow-soft-xl backdrop-blur-xl bg-white/90">
-          <div className="flex items-end gap-2">
-            <textarea
-              name="content"
-              required
-              rows={2}
-              placeholder="输入问题..."
-              className="flex-1 resize-none outline-none p-2 text-sm leading-6 bg-transparent placeholder:text-ink-400"
-            />
-            <button
-              type="submit"
-              className="bg-gradient-rose-button hover:bg-gradient-rose-button-hover text-white px-5 py-2.5 rounded-full font-medium shadow-soft transition-all duration-300 flex-shrink-0 flex items-center gap-1.5"
-            >
-              发送 <span className="text-xs">✦</span>
-            </button>
-          </div>
-          <p className="text-[11px] text-ink-400 mt-1 px-2">
-            AI 可能会犯错。涉及签证政策、费用的关键信息请以 Home Affairs 官网为准。
-          </p>
-        </div>
+        <ChatInput />
       </form>
     </div>
   );
