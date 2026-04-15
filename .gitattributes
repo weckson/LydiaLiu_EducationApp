@@ -1,0 +1,17 @@
+# 统一使用 LF 行尾符，避免 Windows 和 Linux 之间的 CRLF 冲突
+* text=auto eol=lf
+
+# 二进制文件不处理
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.db binary
+*.pem binary
+
+# Shell 脚本强制 LF
+*.sh text eol=lf
+
+# 保留 Windows 批处理文件的 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

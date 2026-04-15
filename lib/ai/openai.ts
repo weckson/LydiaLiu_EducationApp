@@ -64,15 +64,32 @@ export function createOpenAIProvider(): LLMProvider {
       messages: ChatMessage[],
       options?: ChatOptions
     ): Promise<ChatResult> {
-      const response = await client.chat.completions.create({
+      // GPT-5 系列和 o1/o3 系列是 reasoning models，
+      // 参数名不同，且不支持自定义 temperature
+      const isReasoningModel =
+        chatModel.startsWith("gpt-5") ||
+        chatModel.startsWith("o1") ||
+        chatModel.startsWith("o3") ||
+        chatModel.startsWith("o4");
+
+      const params: any = {
         model: chatModel,
         messages: messages.map((m) => ({
           role: m.role,
           content: m.content,
         })),
-        temperature: options?.temperature ?? 0.3,
-        max_tokens: options?.maxTokens ?? 1500,
-      });
+      };
+
+      if (isReasoningModel) {
+        // 新一代 reasoning 模型：max_completion_tokens、不支持 temperature
+        params.max_completion_tokens = options?.maxTokens ?? 2000;
+      } else {
+        // gpt-4o / gpt-4 / gpt-3.5 等旧模型
+        params.max_tokens = options?.maxTokens ?? 1500;
+        params.temperature = options?.temperature ?? 0.3;
+      }
+
+      const response = await client.chat.completions.create(params);
 
       const content = response.choices[0]?.message?.content ?? "";
       return {

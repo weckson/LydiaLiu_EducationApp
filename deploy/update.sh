@@ -37,7 +37,25 @@ if [ -d ".git" ]; then
   echo ""
   echo "▶ 拉取最新代码..."
   git fetch origin
+
+  # 如果有本地未提交修改（通常是 deploy/update.sh 的权限变化等），
+  # 自动暂存后再 rebase，避免每次被挡住
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "⚠️  检测到服务器本地有未提交修改，自动暂存..."
+    git stash push -u -m "auto-stash-by-update-script-$(date +%s)"
+    STASHED=1
+  else
+    STASHED=0
+  fi
+
   git pull --rebase
+
+  # 不恢复 stash —— 服务器的本地修改通常是无意产生的
+  # 如果你确实需要恢复，手动运行 git stash list + git stash pop
+  if [ "$STASHED" = "1" ]; then
+    echo "ℹ️  本地修改已暂存。如需恢复，运行 git stash list / git stash pop"
+  fi
+
   echo "✓ 代码已更新"
 else
   echo ""

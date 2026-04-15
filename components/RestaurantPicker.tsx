@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 type Restaurant = {
   id: string;
@@ -22,31 +22,48 @@ export function RestaurantPicker({
   const [displayIndex, setDisplayIndex] = useState(0);
   const [cuisineFilter, setCuisineFilter] = useState<string>("");
 
-  // 获取所有菜系
-  const cuisines = Array.from(new Set(restaurants.map((r) => r.cuisine)));
-  const filtered = cuisineFilter
-    ? restaurants.filter((r) => r.cuisine === cuisineFilter)
-    : restaurants;
+  // 用 useMemo 保持引用稳定
+  const cuisines = useMemo(
+    () => Array.from(new Set(restaurants.map((r) => r.cuisine))),
+    [restaurants]
+  );
+  const filtered = useMemo(
+    () =>
+      cuisineFilter
+        ? restaurants.filter((r) => r.cuisine === cuisineFilter)
+        : restaurants,
+    [restaurants, cuisineFilter]
+  );
 
-  // 转动动画
+  // 用 ref 追踪最新的 filtered 数组，避免闭包陷阱
+  const filteredRef = useRef(filtered);
+  filteredRef.current = filtered;
+
+  // 转动动画 —— 只依赖 spinning，数组通过 ref 获取
   useEffect(() => {
     if (!spinning) return;
+    if (filteredRef.current.length === 0) {
+      setSpinning(false);
+      return;
+    }
+
     let count = 0;
     const maxCount = 18;
     const interval = setInterval(() => {
-      setDisplayIndex((prev) => (prev + 1) % filtered.length);
+      setDisplayIndex((prev) => (prev + 1) % filteredRef.current.length);
       count++;
       if (count >= maxCount) {
         clearInterval(interval);
-        // 最终随机选择
-        const finalIndex = Math.floor(Math.random() * filtered.length);
+        const finalIndex = Math.floor(
+          Math.random() * filteredRef.current.length
+        );
         setDisplayIndex(finalIndex);
-        setSelected(filtered[finalIndex]);
+        setSelected(filteredRef.current[finalIndex]);
         setSpinning(false);
       }
     }, 80);
     return () => clearInterval(interval);
-  }, [spinning, filtered]);
+  }, [spinning]);
 
   const handleSpin = () => {
     if (filtered.length === 0 || spinning) return;

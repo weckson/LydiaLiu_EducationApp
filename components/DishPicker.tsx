@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 type Dish = {
   id: string;
@@ -13,8 +13,15 @@ type Dish = {
 };
 
 export function DishPicker({ dishes }: { dishes: Dish[] }) {
-  const meatDishes = dishes.filter((d) => d.type === "MEAT");
-  const veggieDishes = dishes.filter((d) => d.type === "VEGGIE");
+  // 用 useMemo 保持数组引用稳定，避免 effect 被反复清理导致动画停不下来
+  const meatDishes = useMemo(
+    () => dishes.filter((d) => d.type === "MEAT"),
+    [dishes]
+  );
+  const veggieDishes = useMemo(
+    () => dishes.filter((d) => d.type === "VEGGIE"),
+    [dishes]
+  );
 
   const [meatPick, setMeatPick] = useState<Dish | null>(null);
   const [veggiePick, setVeggiePick] = useState<Dish | null>(null);
@@ -22,27 +29,38 @@ export function DishPicker({ dishes }: { dishes: Dish[] }) {
   const [meatIdx, setMeatIdx] = useState(0);
   const [veggieIdx, setVeggieIdx] = useState(0);
 
+  // 用 ref 追踪最新的菜品数组，避免闭包陷阱
+  const meatRef = useRef(meatDishes);
+  const veggieRef = useRef(veggieDishes);
+  meatRef.current = meatDishes;
+  veggieRef.current = veggieDishes;
+
   useEffect(() => {
     if (!spinning) return;
+    if (meatRef.current.length === 0 || veggieRef.current.length === 0) {
+      setSpinning(false);
+      return;
+    }
+
     let count = 0;
     const maxCount = 18;
     const interval = setInterval(() => {
-      setMeatIdx((prev) => (prev + 1) % meatDishes.length);
-      setVeggieIdx((prev) => (prev + 1) % veggieDishes.length);
+      setMeatIdx((prev) => (prev + 1) % meatRef.current.length);
+      setVeggieIdx((prev) => (prev + 1) % veggieRef.current.length);
       count++;
       if (count >= maxCount) {
         clearInterval(interval);
-        const mi = Math.floor(Math.random() * meatDishes.length);
-        const vi = Math.floor(Math.random() * veggieDishes.length);
+        const mi = Math.floor(Math.random() * meatRef.current.length);
+        const vi = Math.floor(Math.random() * veggieRef.current.length);
         setMeatIdx(mi);
         setVeggieIdx(vi);
-        setMeatPick(meatDishes[mi]);
-        setVeggiePick(veggieDishes[vi]);
+        setMeatPick(meatRef.current[mi]);
+        setVeggiePick(veggieRef.current[vi]);
         setSpinning(false);
       }
     }, 80);
     return () => clearInterval(interval);
-  }, [spinning, meatDishes, veggieDishes]);
+  }, [spinning]); // 只依赖 spinning，数组通过 ref 获取最新值
 
   const handleSpin = () => {
     if (meatDishes.length === 0 || veggieDishes.length === 0 || spinning)
