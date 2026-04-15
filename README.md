@@ -42,7 +42,13 @@ npm install
 ```powershell
 copy .env.example .env
 ```
-（Phase 1 暂时不需要 OpenAI Key，`.env` 里 `DATABASE_URL` 用默认值即可）
+
+**打开 `.env` 文件**（用记事本或 VS Code），填入你的 OpenAI Key：
+```
+OPENAI_API_KEY="sk-proj-你的key粘贴到这里"
+```
+
+> 💡 Phase 2 开始，AI 问答功能会用到 OpenAI。如果暂时不想配置 Key，知识库的录入/搜索功能照样能用，只是 AI 问答页会报错。
 
 ### 4. 初始化数据库
 
@@ -62,6 +68,16 @@ npm run db:seed
 这一步会读取 `prisma/seed/` 下的数据文件，批量写入数据库。脚本是**幂等的**——重复跑不会产生重复条目。
 
 > ⚠️ **重要提醒**：这些初始数据是我基于 2025 年 12 月前公开信息整理的**骨架**，作为专业顾问你必须在使用前**逐条核对**，尤其是费用、分数、配额、英语门槛等经常变动的数字。每条知识都带了 `sourceUrl` 指向官方页面，方便你快速复核。
+
+### 5.5 为所有知识生成 AI 向量（Phase 2 新增）
+
+```powershell
+npm run db:embed
+```
+
+这一步会调用 OpenAI API 给 69 条种子数据一次性生成向量（约 30 秒，成本 < ¥0.1）。没有向量的条目不会出现在 AI 问答的检索结果里。
+
+> 之后你每次在 app 里**新增或修改**知识条目，系统会自动调用 OpenAI 生成向量，不需要再手动跑这个命令。只有在**批量导入或换模型**时才需要重跑。
 
 ### 6. 启动应用 🎉
 
@@ -123,20 +139,28 @@ LydiaLiu_EducationApp/
 
 ---
 
-## Phase 1 已实现的功能
+## Phase 1 + Phase 2 已实现的功能
 
+### Phase 1 — 知识库
 - ✅ 首页：统计 + 最近更新
 - ✅ 知识库列表：全文搜索、分类筛选
 - ✅ 新增 / 编辑 / 删除知识条目
 - ✅ Markdown 正文编辑和渲染
 - ✅ 标签系统（自由输入，自动去重）
-- ✅ 可见性字段（PRIVATE / STUDENT_VISIBLE）—— 为 Phase 3 学生端做准备
+- ✅ 可见性字段（PRIVATE / STUDENT_VISIBLE）
+
+### Phase 2 — AI 问答（RAG）
+- ✅ 知识条目保存时自动生成向量
+- ✅ 聊天界面：新建会话 / 历史对话 / 删除
+- ✅ RAG 检索：向量相似度 top-K
+- ✅ 引用展示：答案下方列出参考条目 + 相似度分数
+- ✅ LLM 抽象层（未来换模型只改一个文件）
+- ✅ 对话历史（上下文连续）
 
 ## 接下来会做什么
 
-- **Phase 2**：接入 OpenAI API，做 RAG 问答（带引用）
 - **Phase 3**：学生端账号系统 + 申请进度看板
-- **Phase 4**：PWA 支持（手机上"添加到主屏幕"可离线用）+ 迁云
+- **Phase 4**：PWA 支持 + AWS Lightsail 部署上线
 
 完整规划见 `C:\Users\29019\.claude\plans\crispy-tumbling-bubble.md`
 

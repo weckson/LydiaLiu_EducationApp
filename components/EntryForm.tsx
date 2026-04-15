@@ -1,5 +1,4 @@
 // 知识条目的新增/编辑共用表单
-// 用 Server Action 作为 action prop，既能创建也能更新
 
 import Link from "next/link";
 
@@ -25,14 +24,14 @@ export function EntryForm({
   const tagsString = entry?.tags?.map((t) => t.name).join(", ") ?? "";
 
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-6 elegant-card p-8">
       <Field label="标题" required>
         <input
           name="title"
           required
           defaultValue={entry?.title ?? ""}
           placeholder="例：500 学生签证 2026 新政要点"
-          className="input"
+          className="input-elegant"
         />
       </Field>
 
@@ -42,15 +41,8 @@ export function EntryForm({
           required
           rows={16}
           defaultValue={entry?.contentMd ?? ""}
-          placeholder={`# 要点
-
-- 第一点...
-- 第二点...
-
-## 详细说明
-
-这里写详细内容，可以用 **加粗**、*斜体*、\`代码\`。`}
-          className="input font-mono text-sm leading-6"
+          placeholder={`# 要点\n\n- 第一点...\n- 第二点...\n\n## 详细说明\n\n这里写详细内容，可以用 **加粗**、*斜体*、\`代码\`。`}
+          className="input-elegant font-mono text-sm leading-7"
         />
       </Field>
 
@@ -59,8 +51,8 @@ export function EntryForm({
           <input
             name="category"
             defaultValue={entry?.category ?? ""}
-            placeholder="例：签证政策 / 院校信息 / 案例经验"
-            className="input"
+            placeholder="例：签证政策 / 院校信息"
+            className="input-elegant"
           />
         </Field>
 
@@ -69,7 +61,7 @@ export function EntryForm({
             name="tags"
             defaultValue={tagsString}
             placeholder="500签证, 墨尔本大学, 2026"
-            className="input"
+            className="input-elegant"
           />
         </Field>
       </div>
@@ -79,10 +71,10 @@ export function EntryForm({
           <select
             name="visibility"
             defaultValue={entry?.visibility ?? "PRIVATE"}
-            className="input"
+            className="input-elegant appearance-none cursor-pointer"
           >
-            <option value="PRIVATE">仅自己（PRIVATE）</option>
-            <option value="STUDENT_VISIBLE">学生可见（STUDENT_VISIBLE）</option>
+            <option value="PRIVATE">仅自己</option>
+            <option value="STUDENT_VISIBLE">学生可见</option>
           </select>
         </Field>
 
@@ -92,41 +84,22 @@ export function EntryForm({
             type="url"
             defaultValue={entry?.sourceUrl ?? ""}
             placeholder="https://immi.homeaffairs.gov.au/..."
-            className="input"
+            className="input-elegant"
           />
         </Field>
       </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          className="bg-brand-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-brand-700 transition"
-        >
+        <button type="submit" className="btn-primary">
           {submitLabel}
         </button>
         <Link
           href={entry?.id ? `/knowledge/${entry.id}` : "/knowledge"}
-          className="px-5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+          className="btn-ghost"
         >
           取消
         </Link>
       </div>
-
-      <style>{`
-        .input {
-          width: 100%;
-          padding: 0.625rem 0.875rem;
-          border: 1px solid rgb(203 213 225);
-          border-radius: 0.5rem;
-          background: white;
-          outline: none;
-          transition: border-color 0.15s;
-        }
-        .input:focus {
-          border-color: rgb(59 130 246);
-          box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
-        }
-      `}</style>
     </form>
   );
 }
@@ -142,9 +115,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-sm font-medium text-slate-700 mb-1.5">
+      <span className="block text-sm font-medium text-ink-700 mb-2">
         {label}
-        {required && <span className="text-rose-500 ml-1">*</span>}
+        {required && <span className="text-brand-500 ml-1">*</span>}
       </span>
       {children}
     </label>

@@ -11,7 +11,6 @@ export default async function KnowledgeListPage({
   const q = searchParams.q?.trim() ?? "";
   const category = searchParams.category?.trim() ?? "";
 
-  // SQLite LIKE 大小写不敏感默认仅对 ASCII 生效，中文靠 contains 即可
   const where: any = {};
   if (q) {
     where.OR = [
@@ -45,73 +44,104 @@ export default async function KnowledgeListPage({
   ]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">知识库</h1>
-        <Link
-          href="/knowledge/new"
-          className="bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition"
-        >
+    <div className="space-y-8">
+      {/* 标题区 */}
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-1">
+            Knowledge Library
+          </div>
+          <h1 className="font-serif text-3xl text-ink-900 gold-underline">
+            知识书房
+          </h1>
+        </div>
+        <Link href="/knowledge/new" className="btn-primary">
           + 新增知识
         </Link>
       </div>
 
-      <form method="get" className="flex gap-2">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="搜索标题、正文、标签..."
-          className="flex-1 px-4 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-brand-500"
-        />
+      {/* 搜索框 */}
+      <form method="get" className="flex gap-3">
+        <div className="relative flex-1">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400">
+            ✦
+          </span>
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="搜索标题、正文、标签..."
+            className="input-elegant pl-10"
+          />
+        </div>
         {category && <input type="hidden" name="category" value={category} />}
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition"
-        >
+        <button type="submit" className="btn-primary whitespace-nowrap">
           搜索
         </button>
         {(q || category) && (
-          <Link
-            href="/knowledge"
-            className="px-4 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
-          >
+          <Link href="/knowledge" className="btn-secondary whitespace-nowrap">
             清除
           </Link>
         )}
       </form>
 
+      {/* 分类筛选 */}
       {categories.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-sm">
-          <span className="text-slate-500">按分类：</span>
-          {categories.map((c) => (
-            <Link
-              key={c.category}
-              href={`/knowledge?category=${encodeURIComponent(c.category!)}`}
-              className={`px-3 py-1 rounded-full border transition ${
-                category === c.category
-                  ? "bg-brand-600 text-white border-brand-600"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-brand-500"
-              }`}
-            >
-              {c.category} ({c._count._all})
-            </Link>
-          ))}
+        <div className="elegant-card p-4">
+          <div className="text-[10px] tracking-[0.2em] uppercase text-gold-600 mb-3">
+            Browse by Category
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <Link
+                key={c.category}
+                href={`/knowledge?category=${encodeURIComponent(c.category!)}`}
+                className={`px-4 py-1.5 rounded-full text-sm border transition-all duration-200 ${
+                  category === c.category
+                    ? "bg-gradient-rose-button text-white border-transparent shadow-soft"
+                    : "bg-white text-ink-600 border-brand-100 hover:border-brand-300 hover:text-brand-700"
+                }`}
+              >
+                {c.category}{" "}
+                <span className="text-[11px] opacity-70 ml-0.5">
+                  {c._count._all}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
-      <div className="text-sm text-slate-500">
-        共 {entries.length} 条{q && ` · 关键词："${q}"`}
-        {category && ` · 分类：${category}`}
+      {/* 结果统计 */}
+      <div className="text-sm text-ink-500 flex items-center gap-2">
+        <span className="font-serif text-brand-600 text-lg">
+          {entries.length}
+        </span>
+        <span>条结果</span>
+        {q && (
+          <>
+            <span className="text-ink-300">·</span>
+            <span>
+              关键词 <em className="text-brand-600 not-italic">"{q}"</em>
+            </span>
+          </>
+        )}
+        {category && (
+          <>
+            <span className="text-ink-300">·</span>
+            <span>
+              分类 <em className="text-brand-600 not-italic">{category}</em>
+            </span>
+          </>
+        )}
       </div>
 
+      {/* 条目列表 */}
       {entries.length === 0 ? (
-        <div className="bg-white border border-dashed border-slate-300 rounded-lg p-12 text-center">
-          <p className="text-slate-500">没有找到匹配的知识条目</p>
-          <Link
-            href="/knowledge/new"
-            className="inline-block mt-3 text-brand-600 hover:underline font-medium"
-          >
+        <div className="elegant-card p-16 text-center">
+          <div className="text-4xl text-gold-400 mb-3">✦</div>
+          <p className="text-ink-500 mb-4">没有找到匹配的知识条目</p>
+          <Link href="/knowledge/new" className="btn-primary">
             + 录入新知识
           </Link>
         </div>
@@ -121,38 +151,36 @@ export default async function KnowledgeListPage({
             <li key={e.id}>
               <Link
                 href={`/knowledge/${e.id}`}
-                className="block bg-white border border-slate-200 rounded-lg p-4 hover:border-brand-500 hover:shadow-sm transition"
+                className="elegant-card elegant-card-hover block p-5 group"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <h2 className="font-semibold text-slate-800 flex-1">
+                  <h2 className="font-serif text-lg text-ink-900 group-hover:text-brand-700 transition flex-1">
                     {e.title}
                   </h2>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {e.visibility === "STUDENT_VISIBLE" && (
-                      <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold-100 text-gold-700 border border-gold-200">
                         学生可见
                       </span>
                     )}
-                    <time className="text-xs text-slate-400">
-                      {new Date(e.updatedAt).toLocaleDateString("zh-CN")}
+                    <time className="text-xs text-ink-400 tracking-wide">
+                      {new Date(e.updatedAt).toLocaleDateString("zh-CN", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </time>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-slate-500 line-clamp-2">
-                  {e.contentMd.slice(0, 160)}
+                <p className="mt-2 text-sm text-ink-500 line-clamp-2 leading-relaxed">
+                  {e.contentMd.replace(/[#*`_\-]/g, "").slice(0, 180)}
                 </p>
                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                   {e.category && (
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                      {e.category}
-                    </span>
+                    <span className="tag-chip-gold">{e.category}</span>
                   )}
                   {e.tags.map((t) => (
-                    <span
-                      key={t.id}
-                      className="text-xs text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded"
-                    >
-                      #{t.name}
+                    <span key={t.id} className="tag-chip">
+                      {t.name}
                     </span>
                   ))}
                 </div>

@@ -1,5 +1,7 @@
 // 刘丽航专属留学 App - 数据库 schema
-// Phase 1：只包含知识库相关的表；Phase 3 再加 User/Student 相关
+// Phase 1：知识库相关表
+// Phase 2：embedding 字段 + 聊天会话/消息
+// Phase 3 再加 User/Student 相关
 
 generator client {
   provider = "prisma-client-js"
@@ -12,15 +14,21 @@ datasource db {
 
 /// 知识条目 —— 顾问录入的每一段专业知识
 model KnowledgeEntry {
-  id          String   @id @default(cuid())
-  title       String
-  contentMd   String   // Markdown 正文
-  category    String?  // 大分类：如 "500签证"、"院校信息"、"移民政策"
-  visibility  String   @default("PRIVATE") // PRIVATE | STUDENT_VISIBLE
-  sourceUrl   String?  // 来源链接（若有）
-  tags        Tag[]    @relation("EntryTags")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  title              String
+  contentMd          String // Markdown 正文
+  category           String? // 大分类：如 "500签证"、"院校信息"、"移民政策"
+  visibility         String   @default("PRIVATE") // PRIVATE | STUDENT_VISIBLE
+  sourceUrl          String? // 来源链接（若有）
+  tags               Tag[]    @relation("EntryTags")
+  // —— Phase 2 embedding 字段 ——
+  embedding          String? // JSON 字符串化的 float 数组（text-embedding-3-small 为 1536 维）
+  embeddingModel     String? // 生成该向量使用的模型，方便版本管理
+  embeddingUpdatedAt DateTime? // 向量生成时间，判断内容更新后是否需要重算
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  citations ChatMessageCitation[]
 
   @@index([category])
   @@index([updatedAt])
@@ -30,8 +38,49 @@ model KnowledgeEntry {
 model Tag {
   id      String           @id @default(cuid())
   name    String           @unique
-  color   String?          // 可选颜色，UI 展示用
+  color   String? // 可选颜色，UI 展示用
   entries KnowledgeEntry[] @relation("EntryTags")
 
   @@index([name])
+}
+
+/// 聊天会话 —— 顾问端每次问答的一组对话
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String        @default("新对话")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+
+  @@index([updatedAt])
+}
+
+/// 聊天消息 —— 属于某个会话，可能有引用知识条目
+model ChatMessage {
+  id         String      @id @default(cuid())
+  sessionId  String
+  session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role       String // USER | ASSISTANT
+  content    String
+  tokensUsed Int? // 记录消耗，便于统计成本
+  createdAt  DateTime    @default(now())
+
+  citations ChatMessageCitation[]
+
+  @@index([sessionId])
+}
+
+/// 聊天消息与知识条目的引用关联
+model ChatMessageCitation {
+  id        String @id @default(cuid())
+  messageId String
+  entryId   String
+  rank      Int // 在这条消息中的引用顺序（1,2,3...）
+  score     Float // 相似度分数（余弦）
+
+  message ChatMessage    @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  entry   KnowledgeEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, entryId])
+  @@index([messageId])
 }

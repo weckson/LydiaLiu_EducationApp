@@ -1,16 +1,17 @@
 "use server";
 
 // Server Actions —— 顾问端知识库的增删改查
-// Phase 1 只包含基础 CRUD；Phase 2 会在保存时追加 embedding 生成
+// Phase 2：保存条目后异步生成 embedding，不阻断保存流程
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "./db";
+import { tryEmbedEntry } from "./ai/embeddings";
 
 function parseTags(raw: string): string[] {
   // 支持 "标签1, 标签2, 标签3" 或 "#标签1 #标签2"
   return raw
-    .split(/[,，\s]+/)
+    .split(/[,,\s]+/)
     .map((t) => t.replace(/^#/, "").trim())
     .filter((t) => t.length > 0);
 }
@@ -55,6 +56,9 @@ export async function createEntry(formData: FormData) {
     },
   });
 
+  // 生成 embedding（失败不阻断，用户仍能保存成功）
+  await tryEmbedEntry(entry.id);
+
   revalidatePath("/knowledge");
   revalidatePath("/");
   redirect(`/knowledge/${entry.id}`);
@@ -91,6 +95,9 @@ export async function updateEntry(id: string, formData: FormData) {
       },
     },
   });
+
+  // 内容变化后重算 embedding
+  await tryEmbedEntry(id);
 
   revalidatePath("/knowledge");
   revalidatePath(`/knowledge/${id}`);

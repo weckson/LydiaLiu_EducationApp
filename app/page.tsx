@@ -2,88 +2,143 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 
 export default async function HomePage() {
-  const [entryCount, tagCount, recent] = await Promise.all([
-    prisma.knowledgeEntry.count(),
-    prisma.tag.count(),
-    prisma.knowledgeEntry.findMany({
-      take: 5,
-      orderBy: { updatedAt: "desc" },
-      include: { tags: true },
-    }),
-  ]);
+  const [entryCount, tagCount, embeddedCount, sessionCount, recent] =
+    await Promise.all([
+      prisma.knowledgeEntry.count(),
+      prisma.tag.count(),
+      prisma.knowledgeEntry.count({ where: { embedding: { not: null } } }),
+      prisma.chatSession.count(),
+      prisma.knowledgeEntry.findMany({
+        take: 5,
+        orderBy: { updatedAt: "desc" },
+        include: { tags: true },
+      }),
+    ]);
 
   return (
-    <div className="space-y-8">
-      <section className="bg-gradient-to-br from-brand-500 to-brand-700 text-white rounded-2xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold mb-2">欢迎回来，Lydia 👋</h1>
-        <p className="text-brand-50/90">
-          这里是你的专属知识库。日常随手记录、后期用 AI 问答检索。
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Link
-            href="/knowledge/new"
-            className="bg-white text-brand-700 px-4 py-2 rounded-lg font-medium hover:bg-brand-50 transition"
-          >
-            + 新增知识
-          </Link>
-          <Link
-            href="/knowledge"
-            className="bg-white/10 border border-white/30 px-4 py-2 rounded-lg font-medium hover:bg-white/20 transition"
-          >
-            浏览全部
-          </Link>
+    <div className="space-y-14">
+      {/* ═══ Hero 区 ═══ */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-hero p-10 md:p-14 shadow-soft-lg">
+        {/* 装饰性圆斑 */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/40 blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-10 w-64 h-64 rounded-full bg-gold-200/40 blur-3xl"></div>
+
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase text-brand-700 mb-4">
+            <span className="h-px w-8 bg-gold-500"></span>
+            Rose Study · Est. 2026
+            <span className="h-px w-8 bg-gold-500"></span>
+          </div>
+
+          <h1 className="font-serif text-4xl md:text-5xl text-ink-900 mb-3 leading-tight">
+            Welcome back,
+            <br />
+            <span className="italic text-brand-700">Lydia</span>
+            <span className="text-gold-500"> ✦</span>
+          </h1>
+
+          <p className="text-ink-600 text-base md:text-lg max-w-xl leading-relaxed">
+            这里是你的专属知识书房。日常随手沉淀，<br className="hidden md:inline" />
+            AI 随时为你检索、引用、作答。
+          </p>
+
+          <div className="mt-8 flex gap-3 flex-wrap">
+            <Link
+              href="/chat"
+              className="bg-white/95 text-brand-700 px-6 py-3 rounded-full font-medium shadow-soft hover:shadow-soft-lg hover:bg-white transition-all duration-300 flex items-center gap-2"
+            >
+              <span className="text-gold-500">✦</span> 开启 AI 问答
+            </Link>
+            <Link
+              href="/knowledge/new"
+              className="bg-transparent border border-brand-400/60 text-brand-800 px-6 py-3 rounded-full font-medium hover:bg-white/40 backdrop-blur-sm transition-all duration-300"
+            >
+              + 新增知识
+            </Link>
+            <Link
+              href="/knowledge"
+              className="bg-transparent text-ink-700 px-6 py-3 rounded-full font-medium hover:bg-white/40 backdrop-blur-sm transition-all duration-300"
+            >
+              浏览书房
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard label="知识条目" value={entryCount} icon="📚" />
-        <StatCard label="标签" value={tagCount} icon="🏷️" />
-        <StatCard label="当前阶段" value="Phase 1" icon="🚀" />
-      </section>
-
+      {/* ═══ 统计卡片 ═══ */}
       <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold text-slate-800">最近更新</h2>
+        <SectionHeader title="今日概览" subtitle="Overview" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <StatCard
+            label="知识条目"
+            value={entryCount}
+            subtitle="Entries"
+            accent="rose"
+          />
+          <StatCard
+            label="标签"
+            value={tagCount}
+            subtitle="Tags"
+            accent="cream"
+          />
+          <StatCard
+            label="可检索"
+            value={embeddedCount}
+            subtitle="Indexed"
+            accent="gold"
+          />
+          <StatCard
+            label="对话记录"
+            value={sessionCount}
+            subtitle="Chats"
+            accent="rose"
+          />
+        </div>
+      </section>
+
+      {/* ═══ 最近更新 ═══ */}
+      <section>
+        <div className="flex items-end justify-between mb-6">
+          <SectionHeader title="最近更新" subtitle="Recent" noBottomMargin />
           <Link
             href="/knowledge"
-            className="text-sm text-brand-600 hover:underline"
+            className="text-sm text-brand-600 hover:text-brand-700 transition flex items-center gap-1"
           >
-            查看全部 →
+            查看全部 <span>→</span>
           </Link>
         </div>
+
         {recent.length === 0 ? (
           <EmptyHint />
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {recent.map((e) => (
               <li key={e.id}>
                 <Link
                   href={`/knowledge/${e.id}`}
-                  className="block bg-white border border-slate-200 rounded-lg p-4 hover:border-brand-500 transition"
+                  className="elegant-card elegant-card-hover block p-5 group"
                 >
-                  <div className="flex items-start justify-between">
-                    <h3 className="font-medium text-slate-800">{e.title}</h3>
-                    <time className="text-xs text-slate-400">
-                      {new Date(e.updatedAt).toLocaleDateString("zh-CN")}
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-serif text-lg text-ink-900 group-hover:text-brand-700 transition">
+                      {e.title}
+                    </h3>
+                    <time className="text-xs text-ink-400 flex-shrink-0 tracking-wide">
+                      {new Date(e.updatedAt).toLocaleDateString("zh-CN", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </time>
                   </div>
-                  {e.category && (
-                    <span className="inline-block mt-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                      {e.category}
-                    </span>
-                  )}
-                  {e.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {e.tags.map((t) => (
-                        <span
-                          key={t.id}
-                          className="text-xs text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded"
-                        >
-                          #{t.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {e.category && (
+                      <span className="tag-chip-gold">{e.category}</span>
+                    )}
+                    {e.tags.slice(0, 4).map((t) => (
+                      <span key={t.id} className="tag-chip">
+                        {t.name}
+                      </span>
+                    ))}
+                  </div>
                 </Link>
               </li>
             ))}
@@ -94,33 +149,71 @@ export default async function HomePage() {
   );
 }
 
+// ═════════════════════════════════════
+// 组件
+// ═════════════════════════════════════
+
+function SectionHeader({
+  title,
+  subtitle,
+  noBottomMargin,
+}: {
+  title: string;
+  subtitle: string;
+  noBottomMargin?: boolean;
+}) {
+  return (
+    <div className={noBottomMargin ? "" : "mb-6"}>
+      <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-1">
+        {subtitle}
+      </div>
+      <h2 className="font-serif text-2xl text-ink-900 gold-underline">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
-  icon,
+  subtitle,
+  accent,
 }: {
   label: string;
   value: number | string;
-  icon: string;
+  subtitle: string;
+  accent: "rose" | "gold" | "cream";
 }) {
+  const accentColor = {
+    rose: "text-brand-500",
+    gold: "text-gold-600",
+    cream: "text-cream-400",
+  }[accent];
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="text-2xl">{icon}</div>
-      <div className="mt-2 text-2xl font-bold text-slate-800">{value}</div>
-      <div className="text-sm text-slate-500">{label}</div>
+    <div className="elegant-card p-5 relative overflow-hidden">
+      <div className="text-[10px] tracking-[0.2em] uppercase text-ink-400">
+        {subtitle}
+      </div>
+      <div
+        className={`mt-2 font-serif text-4xl ${accentColor} tracking-tight`}
+      >
+        {value}
+      </div>
+      <div className="mt-1 text-sm text-ink-600">{label}</div>
+      <div className="absolute top-3 right-3 text-gold-400 text-sm">✦</div>
     </div>
   );
 }
 
 function EmptyHint() {
   return (
-    <div className="bg-white border border-dashed border-slate-300 rounded-lg p-8 text-center">
-      <p className="text-slate-500">还没有任何知识条目。</p>
-      <Link
-        href="/knowledge/new"
-        className="inline-block mt-3 text-brand-600 hover:underline font-medium"
-      >
-        录入第一条 →
+    <div className="elegant-card p-12 text-center">
+      <div className="text-4xl text-gold-400 mb-3">✦</div>
+      <p className="text-ink-500 mb-4">这里还没有任何知识条目</p>
+      <Link href="/knowledge/new" className="btn-primary">
+        录入第一条
       </Link>
     </div>
   );

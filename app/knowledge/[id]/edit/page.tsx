@@ -20,22 +20,29 @@ export default async function EditEntryPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Link href="/knowledge" className="hover:text-brand-600">
-          知识库
+      <div className="flex items-center gap-2 text-sm text-ink-500">
+        <Link href="/knowledge" className="hover:text-brand-600 transition">
+          知识书房
         </Link>
-        <span>/</span>
+        <span className="text-gold-400">/</span>
         <Link
           href={`/knowledge/${entry.id}`}
-          className="hover:text-brand-600 truncate max-w-xs"
+          className="hover:text-brand-600 transition truncate max-w-xs"
         >
           {entry.title}
         </Link>
-        <span>/</span>
-        <span className="text-slate-800">编辑</span>
+        <span className="text-gold-400">/</span>
+        <span className="text-ink-700">编辑</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-slate-800">编辑知识条目</h1>
+      <div>
+        <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-1">
+          Edit Entry
+        </div>
+        <h1 className="font-serif text-3xl text-ink-900 gold-underline">
+          编辑知识条目
+        </h1>
+      </div>
 
       <EntryForm action={action} entry={entry} submitLabel="保存修改" />
     </div>
