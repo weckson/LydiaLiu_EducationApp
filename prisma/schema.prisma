@@ -1,7 +1,7 @@
 // 刘丽航专属留学 App - 数据库 schema
-// Phase 1：知识库相关表
-// Phase 2：embedding 字段 + 聊天会话/消息
-// Phase 3 再加 User/Student 相关
+// Phase 1：知识库
+// Phase 2：embedding + 聊天
+// Phase 2.5：todo + 娱乐小工具（零食/餐厅/菜品）
 
 generator client {
   provider = "prisma-client-js"
@@ -12,21 +12,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// 知识条目 —— 顾问录入的每一段专业知识
+// ═══════════════════════════════════════════
+// 知识库
+// ═══════════════════════════════════════════
+
 model KnowledgeEntry {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   title              String
-  contentMd          String // Markdown 正文
-  category           String? // 大分类：如 "500签证"、"院校信息"、"移民政策"
-  visibility         String   @default("PRIVATE") // PRIVATE | STUDENT_VISIBLE
-  sourceUrl          String? // 来源链接（若有）
-  tags               Tag[]    @relation("EntryTags")
-  // —— Phase 2 embedding 字段 ——
-  embedding          String? // JSON 字符串化的 float 数组（text-embedding-3-small 为 1536 维）
-  embeddingModel     String? // 生成该向量使用的模型，方便版本管理
-  embeddingUpdatedAt DateTime? // 向量生成时间，判断内容更新后是否需要重算
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  contentMd          String
+  category           String?
+  visibility         String    @default("PRIVATE")
+  sourceUrl          String?
+  tags               Tag[]     @relation("EntryTags")
+  embedding          String?
+  embeddingModel     String?
+  embeddingUpdatedAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   citations ChatMessageCitation[]
 
@@ -34,17 +36,19 @@ model KnowledgeEntry {
   @@index([updatedAt])
 }
 
-/// 标签 —— 多对多关联知识条目
 model Tag {
   id      String           @id @default(cuid())
   name    String           @unique
-  color   String? // 可选颜色，UI 展示用
+  color   String?
   entries KnowledgeEntry[] @relation("EntryTags")
 
   @@index([name])
 }
 
-/// 聊天会话 —— 顾问端每次问答的一组对话
+// ═══════════════════════════════════════════
+// 聊天
+// ═══════════════════════════════════════════
+
 model ChatSession {
   id        String        @id @default(cuid())
   title     String        @default("新对话")
@@ -55,14 +59,13 @@ model ChatSession {
   @@index([updatedAt])
 }
 
-/// 聊天消息 —— 属于某个会话，可能有引用知识条目
 model ChatMessage {
   id         String      @id @default(cuid())
   sessionId  String
   session    ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  role       String // USER | ASSISTANT
+  role       String
   content    String
-  tokensUsed Int? // 记录消耗，便于统计成本
+  tokensUsed Int?
   createdAt  DateTime    @default(now())
 
   citations ChatMessageCitation[]
@@ -70,17 +73,88 @@ model ChatMessage {
   @@index([sessionId])
 }
 
-/// 聊天消息与知识条目的引用关联
 model ChatMessageCitation {
   id        String @id @default(cuid())
   messageId String
   entryId   String
-  rank      Int // 在这条消息中的引用顺序（1,2,3...）
-  score     Float // 相似度分数（余弦）
+  rank      Int
+  score     Float
 
   message ChatMessage    @relation(fields: [messageId], references: [id], onDelete: Cascade)
   entry   KnowledgeEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, entryId])
   @@index([messageId])
+}
+
+// ═══════════════════════════════════════════
+// Todo 个人待办
+// ═══════════════════════════════════════════
+
+model Todo {
+  id        String    @id @default(cuid())
+  content   String
+  done      Boolean   @default(false)
+  priority  String    @default("NORMAL") // LOW | NORMAL | HIGH
+  note      String?
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([done])
+  @@index([priority])
+}
+
+// ═══════════════════════════════════════════
+// 零食排行榜
+// ═══════════════════════════════════════════
+
+model SnackRanking {
+  id          String   @id @default(cuid())
+  category    String // "AU" 澳洲 | "ZH" 华人
+  rank        Int
+  name        String
+  nameEn      String?
+  emoji       String?
+  description String?
+  priceRange  String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@unique([category, rank])
+  @@index([category])
+}
+
+// ═══════════════════════════════════════════
+// 悉尼餐厅
+// ═══════════════════════════════════════════
+
+model Restaurant {
+  id         String   @id @default(cuid())
+  name       String
+  cuisine    String // 粤菜 / 川菜 / 日料 / ...
+  suburb     String // CBD / Chatswood / Burwood / ...
+  priceLevel Int      @default(2) // 1=$, 2=$$, 3=$$$, 4=$$$$
+  note       String?
+  emoji      String?
+  createdAt  DateTime @default(now())
+
+  @@index([cuisine])
+}
+
+// ═══════════════════════════════════════════
+// 家常菜
+// ═══════════════════════════════════════════
+
+model Dish {
+  id         String   @id @default(cuid())
+  name       String
+  nameEn     String?
+  type       String // MEAT 荤 | VEGGIE 素
+  difficulty String   @default("EASY") // EASY | MEDIUM | HARD
+  note       String?
+  emoji      String?
+  createdAt  DateTime @default(now())
+
+  @@index([type])
 }

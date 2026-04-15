@@ -63,7 +63,7 @@ export async function sendMessage(sessionId: string, formData: FormData) {
   }
 
   // 4. 保存 AI 回复，同时写入引用关联
-  const assistantMsg = await prisma.chatMessage.create({
+  await prisma.chatMessage.create({
     data: {
       sessionId,
       role: "ASSISTANT",
@@ -101,7 +101,6 @@ export async function sendMessage(sessionId: string, formData: FormData) {
 
   revalidatePath(`/chat/${sessionId}`);
   revalidatePath("/chat");
-  return { ok: true, messageId: assistantMsg.id };
 }
 
 /**

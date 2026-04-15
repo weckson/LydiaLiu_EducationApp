@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
-  const [entryCount, tagCount, embeddedCount, sessionCount, recent] =
-    await Promise.all([
-      prisma.knowledgeEntry.count(),
-      prisma.tag.count(),
-      prisma.knowledgeEntry.count({ where: { embedding: { not: null } } }),
-      prisma.chatSession.count(),
-      prisma.knowledgeEntry.findMany({
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-        include: { tags: true },
-      }),
-    ]);
+  const [
+    entryCount,
+    embeddedCount,
+    sessionCount,
+    todoActiveCount,
+    recent,
+  ] = await Promise.all([
+    prisma.knowledgeEntry.count(),
+    prisma.knowledgeEntry.count({ where: { embedding: { not: null } } }),
+    prisma.chatSession.count(),
+    prisma.todo.count({ where: { done: false } }),
+    prisma.knowledgeEntry.findMany({
+      take: 5,
+      orderBy: { updatedAt: "desc" },
+      include: { tags: true },
+    }),
+  ]);
 
   return (
     <div className="space-y-14">
@@ -76,22 +83,53 @@ export default async function HomePage() {
             accent="rose"
           />
           <StatCard
-            label="标签"
-            value={tagCount}
-            subtitle="Tags"
-            accent="cream"
+            label="待办事项"
+            value={todoActiveCount}
+            subtitle="Todos"
+            accent="gold"
           />
           <StatCard
             label="可检索"
             value={embeddedCount}
             subtitle="Indexed"
-            accent="gold"
+            accent="cream"
           />
           <StatCard
             label="对话记录"
             value={sessionCount}
             subtitle="Chats"
             accent="rose"
+          />
+        </div>
+      </section>
+
+      {/* 快捷小工具入口 */}
+      <section>
+        <SectionHeader title="小工具" subtitle="Atelier" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <QuickLink
+            href="/todo"
+            emoji="📝"
+            label="待办"
+            sub="Todo"
+          />
+          <QuickLink
+            href="/fun/snacks"
+            emoji="🍪"
+            label="零食榜"
+            sub="Snacks"
+          />
+          <QuickLink
+            href="/fun/restaurants"
+            emoji="🍽️"
+            label="今晚吃什么"
+            sub="Dine"
+          />
+          <QuickLink
+            href="/fun/dishes"
+            emoji="👩‍🍳"
+            label="做什么菜"
+            sub="Cook"
           />
         </div>
       </section>
@@ -204,6 +242,35 @@ function StatCard({
       <div className="mt-1 text-sm text-ink-600">{label}</div>
       <div className="absolute top-3 right-3 text-gold-400 text-sm">✦</div>
     </div>
+  );
+}
+
+function QuickLink({
+  href,
+  emoji,
+  label,
+  sub,
+}: {
+  href: string;
+  emoji: string;
+  label: string;
+  sub: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="elegant-card elegant-card-hover p-5 text-center group"
+    >
+      <div className="text-3xl mb-2 group-hover:scale-110 transition-transform inline-block">
+        {emoji}
+      </div>
+      <div className="font-serif text-base text-ink-900 group-hover:text-brand-700 transition">
+        {label}
+      </div>
+      <div className="text-[10px] tracking-[0.2em] uppercase text-gold-600 mt-0.5">
+        {sub}
+      </div>
+    </Link>
   );
 }
 

@@ -1,35 +1,34 @@
 // Prisma 种子脚本
 //
-// 运行方式：
-//   npm run db:seed
-//
-// 幂等：已存在的同名条目会跳过，不会重复插入。
-// 想更新某条内容，请在 app 里直接编辑，或手动删除后重跑本脚本。
+// 运行：npm run db:seed
+// 幂等：已存在的同名条目会跳过
 
 import { PrismaClient } from "@prisma/client";
 import { VISAS } from "./seed/visas";
 import { UNIVERSITIES } from "./seed/universities";
+import { SNACKS } from "./seed/snacks";
+import { RESTAURANTS } from "./seed/restaurants";
+import { DISHES } from "./seed/dishes";
 import type { SeedEntry } from "./seed/types";
 
 const prisma = new PrismaClient();
 
-async function seedEntries(entries: SeedEntry[], label: string) {
+// ═══════════════════════════════════════════
+// 知识库种子
+// ═══════════════════════════════════════════
+async function seedKnowledgeEntries(entries: SeedEntry[], label: string) {
   console.log(`\n▶ 开始导入 ${label}（${entries.length} 条）`);
   let created = 0;
   let skipped = 0;
 
   for (const e of entries) {
-    // 以 title 作为唯一键判断是否已存在
     const existing = await prisma.knowledgeEntry.findFirst({
       where: { title: e.title },
     });
     if (existing) {
-      console.log(`  ⏭  跳过（已存在）: ${e.title}`);
       skipped++;
       continue;
     }
-
-    // 为每个 tag 做 upsert
     const tags = await Promise.all(
       e.tags.map((name) =>
         prisma.tag.upsert({
@@ -39,7 +38,6 @@ async function seedEntries(entries: SeedEntry[], label: string) {
         })
       )
     );
-
     await prisma.knowledgeEntry.create({
       data: {
         title: e.title,
@@ -50,28 +48,141 @@ async function seedEntries(entries: SeedEntry[], label: string) {
         tags: { connect: tags.map((t) => ({ id: t.id })) },
       },
     });
-    console.log(`  ✓ ${e.title}`);
     created++;
   }
 
-  console.log(`◀ ${label} 完成：新增 ${created}，跳过 ${skipped}`);
+  console.log(`◀ ${label}：新增 ${created}，跳过 ${skipped}`);
+  return { created, skipped };
+}
+
+// ═══════════════════════════════════════════
+// 零食种子
+// ═══════════════════════════════════════════
+async function seedSnacks() {
+  console.log(`\n▶ 开始导入 零食排行榜（${SNACKS.length} 条）`);
+  let created = 0;
+  let skipped = 0;
+
+  for (const s of SNACKS) {
+    const existing = await prisma.snackRanking.findUnique({
+      where: {
+        category_rank: {
+          category: s.category,
+          rank: s.rank,
+        },
+      },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    await prisma.snackRanking.create({
+      data: {
+        category: s.category,
+        rank: s.rank,
+        name: s.name,
+        nameEn: s.nameEn,
+        emoji: s.emoji,
+        description: s.description,
+        priceRange: s.priceRange,
+      },
+    });
+    created++;
+  }
+  console.log(`◀ 零食排行榜：新增 ${created}，跳过 ${skipped}`);
+  return { created, skipped };
+}
+
+// ═══════════════════════════════════════════
+// 餐厅种子
+// ═══════════════════════════════════════════
+async function seedRestaurants() {
+  console.log(`\n▶ 开始导入 悉尼餐厅（${RESTAURANTS.length} 条）`);
+  let created = 0;
+  let skipped = 0;
+
+  for (const r of RESTAURANTS) {
+    const existing = await prisma.restaurant.findFirst({
+      where: { name: r.name },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    await prisma.restaurant.create({
+      data: {
+        name: r.name,
+        cuisine: r.cuisine,
+        suburb: r.suburb,
+        priceLevel: r.priceLevel,
+        note: r.note,
+        emoji: r.emoji,
+      },
+    });
+    created++;
+  }
+  console.log(`◀ 悉尼餐厅：新增 ${created}，跳过 ${skipped}`);
+  return { created, skipped };
+}
+
+// ═══════════════════════════════════════════
+// 菜品种子
+// ═══════════════════════════════════════════
+async function seedDishes() {
+  console.log(`\n▶ 开始导入 家常菜（${DISHES.length} 道）`);
+  let created = 0;
+  let skipped = 0;
+
+  for (const d of DISHES) {
+    const existing = await prisma.dish.findFirst({
+      where: { name: d.name },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    await prisma.dish.create({
+      data: {
+        name: d.name,
+        nameEn: d.nameEn,
+        type: d.type,
+        difficulty: d.difficulty,
+        note: d.note,
+        emoji: d.emoji,
+      },
+    });
+    created++;
+  }
+  console.log(`◀ 家常菜：新增 ${created}，跳过 ${skipped}`);
   return { created, skipped };
 }
 
 async function main() {
   console.log("═════════════════════════════════════════");
-  console.log(" Lydia 专属留学 App · 知识库种子数据导入");
+  console.log(" Lydia 专属留学 App · 种子数据导入");
   console.log("═════════════════════════════════════════");
 
-  const visaResult = await seedEntries(VISAS, "签证知识");
-  const uniResult = await seedEntries(UNIVERSITIES, "院校信息");
+  const visa = await seedKnowledgeEntries(VISAS, "签证知识");
+  const uni = await seedKnowledgeEntries(UNIVERSITIES, "院校信息");
+  const snacks = await seedSnacks();
+  const restaurants = await seedRestaurants();
+  const dishes = await seedDishes();
 
-  const totalCreated = visaResult.created + uniResult.created;
-  const totalSkipped = visaResult.skipped + uniResult.skipped;
+  const totalCreated =
+    visa.created +
+    uni.created +
+    snacks.created +
+    restaurants.created +
+    dishes.created;
+  const totalSkipped =
+    visa.skipped +
+    uni.skipped +
+    snacks.skipped +
+    restaurants.skipped +
+    dishes.skipped;
 
   console.log("\n═════════════════════════════════════════");
   console.log(` 全部完成：新增 ${totalCreated} 条，跳过 ${totalSkipped} 条`);
-  console.log(" 打开 http://localhost:3000/knowledge 查看");
   console.log("═════════════════════════════════════════\n");
 }
 
