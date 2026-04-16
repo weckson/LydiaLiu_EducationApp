@@ -15,15 +15,15 @@ export default async function FunLandingPage() {
     label: string;
     sub: string;
     desc: string;
-    count: number;
+    count?: number;
     emoji: string;
     accent: string;
   }> = [
     {
       href: "/fun/snacks",
-      label: "零食排行榜",
-      sub: "Snack Rankings",
-      desc: "澳洲本土热门 + 华人社区最爱的 Top 10 零食",
+      label: "零食抽奖",
+      sub: "Snack Lottery",
+      desc: "抽到什么吃什么！Coles / Woolworths + 华超热门零食",
       count: snackCount,
       emoji: "🍪",
       accent: "from-brand-200 to-gold-200",
@@ -45,6 +45,14 @@ export default async function FunLandingPage() {
       count: dishCount,
       emoji: "👩‍🍳",
       accent: "from-cream-200 to-brand-200",
+    },
+    {
+      href: "/fun/games",
+      label: "小游戏",
+      sub: "Mini Games",
+      desc: "2048 / 翻牌配对 / 贪吃蛇 / 打砖块",
+      emoji: "🎮",
+      accent: "from-brand-100 to-cream-200",
     },
   ];
 
@@ -103,10 +111,16 @@ export default async function FunLandingPage() {
               </p>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-ink-400">
-                  <strong className="text-brand-600 font-serif text-base">
-                    {t.count}
-                  </strong>{" "}
-                  条数据
+                  {t.count != null ? (
+                    <>
+                      <strong className="text-brand-600 font-serif text-base">
+                        {t.count}
+                      </strong>{" "}
+                      条数据
+                    </>
+                  ) : (
+                    <span className="text-brand-600">4 款游戏</span>
+                  )}
                 </span>
                 <span className="text-brand-600 group-hover:translate-x-1 transition-transform">
                   →

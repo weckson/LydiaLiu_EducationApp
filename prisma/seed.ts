@@ -10,6 +10,7 @@ import { MIGRATION_SOPS } from "./seed/migration-sops";
 import { STUDY_SOPS } from "./seed/study-sops";
 import { UNIVERSITIES } from "./seed/universities";
 import { SNACKS } from "./seed/snacks";
+import { SNACKS_V2 } from "./seed/snacks-v2";
 import { RESTAURANTS } from "./seed/restaurants";
 import { RESTAURANTS_V2 } from "./seed/restaurants-v2";
 import { DISHES } from "./seed/dishes";
@@ -64,11 +65,12 @@ async function seedKnowledgeEntries(entries: SeedEntry[], label: string) {
 // 零食种子
 // ═══════════════════════════════════════════
 async function seedSnacks() {
-  console.log(`\n▶ 开始导入 零食排行榜（${SNACKS.length} 条）`);
+  const allSnacks = [...SNACKS, ...SNACKS_V2];
+  console.log(`\n▶ 开始导入 零食（${allSnacks.length} 条）`);
   let created = 0;
   let skipped = 0;
 
-  for (const s of SNACKS) {
+  for (const s of allSnacks) {
     const existing = await prisma.snackRanking.findUnique({
       where: {
         category_rank: {
