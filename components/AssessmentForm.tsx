@@ -1,19 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { ScoreReferenceButton } from "./ScoreReferenceModal";
 
 /**
  * 移民评估表单（单页长表单）
- * - 五个分组区域
- * - 工作经验用年限下拉（简化版）
- * - 评分参考弹窗
  */
 export function AssessmentForm({
   action,
 }: {
   action: (formData: FormData) => void | Promise<void>;
 }) {
+  const [maritalStatus, setMaritalStatus] = useState("SINGLE");
+  const hasPartner = maritalStatus !== "SINGLE";
+
   return (
     <form action={action} className="space-y-8">
         {/* ═══ Section 1: 个人基础 ═══ */}
@@ -56,39 +57,47 @@ export function AssessmentForm({
             <Field label="婚姻状况" required>
               <select
                 name="maritalStatus"
-                defaultValue="SINGLE"
+                value={maritalStatus}
+                onChange={(e) => setMaritalStatus(e.target.value)}
                 required
                 className="input-elegant cursor-pointer"
               >
-                <option value="SINGLE">单身</option>
+                <option value="SINGLE">单身（自动 +10 分）</option>
                 <option value="MARRIED">已婚</option>
                 <option value="DE_FACTO">事实婚姻</option>
               </select>
             </Field>
           </Grid>
-          <Field label="配偶技能水平（影响 EOI 加分）">
-            <select
-              name="partnerSkillLevel"
-              defaultValue="NONE"
-              className="input-elegant cursor-pointer"
-            >
-              <option value="NONE">
-                配偶无 Competent 英语也无职业评估（+0 分）
-              </option>
-              <option value="ENGLISH_ONLY">
-                配偶只有 Competent 英语（无职业评估）（+5 分）
-              </option>
-              <option value="SKILLED_ENGLISH">
-                配偶有职业评估 + Competent 英语（+10 分）
-              </option>
-              <option value="AU_CITIZEN_PR">
-                配偶是澳洲公民或 PR（+10 分）
-              </option>
-            </select>
-            <div className="text-xs text-ink-400 mt-1">
-              单身自动 +10 分；如果选了单身，此项不影响计算
+          {hasPartner && (
+            <Field label="配偶技能水平（影响 EOI 加分）">
+              <select
+                name="partnerSkillLevel"
+                defaultValue="NONE"
+                className="input-elegant cursor-pointer"
+              >
+                <option value="NONE">
+                  配偶无 Competent 英语也无职业评估（+0 分）
+                </option>
+                <option value="ENGLISH_ONLY">
+                  配偶只有 Competent 英语（无职业评估）（+5 分）
+                </option>
+                <option value="SKILLED_ENGLISH">
+                  配偶有职业评估 + Competent 英语（+10 分）
+                </option>
+                <option value="AU_CITIZEN_PR">
+                  配偶是澳洲公民或 PR（+10 分）
+                </option>
+              </select>
+              <div className="text-xs text-ink-400 mt-1">
+                有配偶但无任何技能 = 比单身少 10 分。建议配偶至少考出 Competent 英语（+5 分）
+              </div>
+            </Field>
+          )}
+          {!hasPartner && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-sm text-green-700 flex items-center gap-2">
+              <span>✓</span> 单身自动获得 +10 分
             </div>
-          </Field>
+          )}
         </Section>
 
         {/* ═══ Section 2: 学历 ═══ */}
