@@ -2,13 +2,26 @@ import type { PointsBreakdown } from "@/lib/assessment/types";
 
 /**
  * 分数明细卡片
- * 显示 189/190/491 三档总分 + 分项拆解
+ * 显示 189/190/491 三档总分 + 分项拆解 + 获邀参考线对比
  */
 export function PointsBreakdownCard({
   breakdown,
 }: {
   breakdown: PointsBreakdown;
 }) {
+  // 获邀分数参考（2025 数据，hardcode 作为 UI 参考线，web search 会提供更新的）
+  const refLines = {
+    "189": { min: 65, typical: 85, label: "189 获邀参考 ~85+" },
+    "190": { min: 65, typical: 75, label: "190 各州参考 ~70-85" },
+    "491": { min: 65, typical: 65, label: "491 最低线 65" },
+  };
+  const partnerHint =
+    breakdown.partner === 10
+      ? "单身或配偶达标"
+      : breakdown.partner === 5
+        ? "配偶仅有英语"
+        : "配偶无技能（比单身少 10 分）";
+
   const items: Array<{ label: string; value: number; hint?: string }> = [
     { label: "年龄", value: breakdown.age },
     {
@@ -17,12 +30,12 @@ export function PointsBreakdownCard({
       hint: breakdown.english === 20 ? "Superior" : breakdown.english === 10 ? "Proficient" : "Competent",
     },
     {
-      label: "海外工作经验",
+      label: "境外工作经验",
       value: breakdown.overseasWork,
       hint: `${breakdown.overseasYears} 年`,
     },
     {
-      label: "澳洲工作经验",
+      label: "境内工作经验",
       value: breakdown.auWork,
       hint: `${breakdown.auYears} 年`,
     },
@@ -31,7 +44,7 @@ export function PointsBreakdownCard({
     { label: "偏远地区学习", value: breakdown.regionalStudy },
     { label: "NAATI", value: breakdown.naati },
     { label: "Professional Year", value: breakdown.professionalYear },
-    { label: "配偶加分", value: breakdown.partner },
+    { label: "配偶", value: breakdown.partner, hint: partnerHint },
   ];
 
   return (
@@ -63,6 +76,36 @@ export function PointsBreakdownCard({
           accent="cream"
           hint="含州担保 +15"
         />
+      </div>
+
+      {/* 获邀参考线对比 */}
+      <div className="bg-cream-50/60 border border-cream-200 rounded-xl p-4">
+        <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-3">
+          Invitation Cutoff Reference 获邀线对比
+        </div>
+        <div className="space-y-2">
+          <CutoffBar
+            label="189"
+            score={breakdown.total189}
+            cutoff={refLines["189"].typical}
+            hint={refLines["189"].label}
+          />
+          <CutoffBar
+            label="190"
+            score={breakdown.total190}
+            cutoff={refLines["190"].typical}
+            hint={refLines["190"].label}
+          />
+          <CutoffBar
+            label="491"
+            score={breakdown.total491}
+            cutoff={refLines["491"].typical}
+            hint={refLines["491"].label}
+          />
+        </div>
+        <div className="mt-3 text-[10px] text-ink-400">
+          ⚠️ 获邀分数线每月变动，以上为 2025 年度参考值。报告下方的 Plan A/B/C 含最新 web search 数据。
+        </div>
       </div>
 
       {/* 资格警告 */}
@@ -154,6 +197,77 @@ function ScoreBig({
       </div>
       <div className="font-serif text-5xl mt-2 leading-none">{value}</div>
       {hint && <div className="text-[10px] opacity-80 mt-2">{hint}</div>}
+    </div>
+  );
+}
+
+/**
+ * 获邀分数对比进度条
+ * 显示客户分数 vs 参考获邀线
+ */
+function CutoffBar({
+  label,
+  score,
+  cutoff,
+  hint,
+}: {
+  label: string;
+  score: number;
+  cutoff: number;
+  hint: string;
+}) {
+  const maxDisplay = 120; // 进度条的最大刻度
+  const scorePercent = Math.min((score / maxDisplay) * 100, 100);
+  const cutoffPercent = Math.min((cutoff / maxDisplay) * 100, 100);
+  const isAbove = score >= cutoff;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-ink-700 font-medium">{label}</span>
+        <span className="text-ink-500">{hint}</span>
+      </div>
+      <div className="relative h-6 bg-cream-100 rounded-full overflow-hidden">
+        {/* 客户分数条 */}
+        <div
+          className={`absolute inset-y-0 left-0 rounded-full transition-all ${
+            isAbove
+              ? "bg-gradient-to-r from-green-300 to-green-500"
+              : "bg-gradient-to-r from-brand-300 to-brand-500"
+          }`}
+          style={{ width: `${scorePercent}%` }}
+        />
+        {/* 获邀线标记 */}
+        <div
+          className="absolute inset-y-0 w-0.5 bg-ink-800"
+          style={{ left: `${cutoffPercent}%` }}
+        />
+        <div
+          className="absolute -top-0.5 text-[9px] font-bold text-ink-800 -translate-x-1/2"
+          style={{ left: `${cutoffPercent}%` }}
+        >
+          {cutoff}
+        </div>
+        {/* 客户分数标签 */}
+        <div
+          className={`absolute inset-y-0 flex items-center text-xs font-bold pl-2 ${
+            isAbove ? "text-green-900" : "text-white"
+          }`}
+        >
+          {score}
+        </div>
+      </div>
+      <div className="text-[10px] mt-0.5 text-right">
+        {isAbove ? (
+          <span className="text-green-700">
+            ✓ 高于参考线 +{score - cutoff}
+          </span>
+        ) : (
+          <span className="text-brand-600">
+            ✗ 低于参考线 -{cutoff - score}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

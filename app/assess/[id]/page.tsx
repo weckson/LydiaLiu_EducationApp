@@ -5,6 +5,7 @@ import { deleteAssessment } from "@/lib/assessment-actions";
 import { PointsBreakdownCard } from "@/components/PointsBreakdownCard";
 import { PathPlanCard } from "@/components/PathPlanCard";
 import { StateComparisonTable } from "@/components/StateComparisonTable";
+import { ScoreReferenceButton } from "@/components/ScoreReferenceModal";
 import type {
   PointsBreakdown,
   RecommendedOccupation,
@@ -65,14 +66,17 @@ export default async function AssessmentReportPage({
             {a.clientName || "未命名"}
           </span>
         </div>
-        <form action={deleteWithId}>
-          <button
-            type="submit"
-            className="text-xs px-3 py-1 rounded-full text-brand-600 hover:bg-brand-50 transition"
-          >
-            删除评估
-          </button>
-        </form>
+        <div className="flex items-center gap-2">
+          <ScoreReferenceButton className="text-xs px-3 py-1.5 rounded-full bg-gold-50 text-gold-700 border border-gold-200 hover:bg-gold-100 transition" />
+          <form action={deleteWithId}>
+            <button
+              type="submit"
+              className="text-xs px-3 py-1 rounded-full text-brand-600 hover:bg-brand-50 transition"
+            >
+              删除评估
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* 顶部信息 */}
