@@ -197,23 +197,14 @@ function parseFormDataToInput(fd: FormData): AssessmentInput {
 
     workExperience,
 
-    englishTest: (getStr(fd, "englishTest") || "IELTS") as EnglishTestType,
-    englishOverall: getStr(fd, "englishOverall")
-      ? getNumber(fd, "englishOverall")
-      : undefined,
-    englishListening: getStr(fd, "englishListening")
-      ? getNumber(fd, "englishListening")
-      : undefined,
-    englishReading: getStr(fd, "englishReading")
-      ? getNumber(fd, "englishReading")
-      : undefined,
-    englishWriting: getStr(fd, "englishWriting")
-      ? getNumber(fd, "englishWriting")
-      : undefined,
-    englishSpeaking: getStr(fd, "englishSpeaking")
-      ? getNumber(fd, "englishSpeaking")
-      : undefined,
-    englishTestDate: getStr(fd, "englishTestDate") || undefined,
+    // 英语：新版用等级下拉，转成 IELTS 等效分
+    englishTest: "IELTS" as EnglishTestType,
+    englishOverall: englishLevelToIELTS(getStr(fd, "englishLevel")),
+    englishListening: undefined,
+    englishReading: undefined,
+    englishWriting: undefined,
+    englishSpeaking: undefined,
+    englishTestDate: undefined,
 
     hasNAATI: getBoolean(fd, "hasNAATI"),
     hasProfessionalYear: getBoolean(fd, "hasProfessionalYear"),
@@ -223,4 +214,19 @@ function parseFormDataToInput(fd: FormData): AssessmentInput {
     budgetTier: (getStr(fd, "budgetTier") || "MEDIUM") as BudgetTier,
     urgency: (getStr(fd, "urgency") || "NORMAL") as Urgency,
   };
+}
+
+/** 把表单的英语等级下拉转成 IELTS 等效总分 */
+function englishLevelToIELTS(level: string): number {
+  switch (level) {
+    case "SUPERIOR":
+      return 8.0;
+    case "PROFICIENT":
+      return 7.0;
+    case "COMPETENT":
+      return 6.0;
+    case "BELOW":
+    default:
+      return 4.0; // 低于 Competent
+  }
 }

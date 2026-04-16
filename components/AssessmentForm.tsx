@@ -227,73 +227,34 @@ export function AssessmentForm({
 
         {/* ═══ Section 4: 英语 ═══ */}
         <Section title="英语考试" subtitle="English Test" icon="📖">
-          <Grid cols={2}>
-            <Field label="考试类型">
-              <select
-                name="englishTest"
-                defaultValue="IELTS"
-                className="input-elegant cursor-pointer"
-              >
-                <option value="IELTS">IELTS 雅思</option>
-                <option value="PTE">PTE</option>
-                <option value="TOEFL">TOEFL iBT</option>
-                <option value="OET">OET（医护）</option>
-              </select>
-            </Field>
-            <Field label="考试日期">
-              <input
-                name="englishTestDate"
-                type="date"
-                className="input-elegant"
-              />
-            </Field>
-            <Field label="总分 Overall">
-              <input
-                name="englishOverall"
-                type="number"
-                step="0.5"
-                min={0}
-                placeholder="如雅思 7.0 / PTE 65"
-                className="input-elegant"
-              />
-            </Field>
-            <Field label="听力 Listening">
-              <input
-                name="englishListening"
-                type="number"
-                step="0.5"
-                min={0}
-                className="input-elegant"
-              />
-            </Field>
-            <Field label="阅读 Reading">
-              <input
-                name="englishReading"
-                type="number"
-                step="0.5"
-                min={0}
-                className="input-elegant"
-              />
-            </Field>
-            <Field label="写作 Writing">
-              <input
-                name="englishWriting"
-                type="number"
-                step="0.5"
-                min={0}
-                className="input-elegant"
-              />
-            </Field>
-            <Field label="口语 Speaking">
-              <input
-                name="englishSpeaking"
-                type="number"
-                step="0.5"
-                min={0}
-                className="input-elegant"
-              />
-            </Field>
-          </Grid>
+          <Field label="英语水平（直接选择等级，自动计算加分）" required>
+            <select
+              name="englishLevel"
+              defaultValue="COMPETENT"
+              required
+              className="input-elegant cursor-pointer"
+            >
+              <option value="SUPERIOR">
+                Superior +20 分（IELTS 四项 8 / PTE 四项 79 / TOEFL iBT 总分 110+）
+              </option>
+              <option value="PROFICIENT">
+                Proficient +10 分（IELTS 四项 7 / PTE 四项 65 / TOEFL iBT 总分 94+）
+              </option>
+              <option value="COMPETENT">
+                Competent +0 分（IELTS 四项 6 / PTE 四项 50 / TOEFL iBT 总分 64+）
+              </option>
+              <option value="BELOW">
+                低于 Competent（不符合技术移民英语门槛）
+              </option>
+            </select>
+            <div className="mt-2 text-xs text-ink-400 space-y-1">
+              <div>IELTS：Competent = 四项均 6.0 | Proficient = 四项均 7.0 | Superior = 四项均 8.0</div>
+              <div>PTE：Competent = 四项均 50 | Proficient = 四项均 65 | Superior = 四项均 79</div>
+              <div>TOEFL iBT：Competent = L12 R13 W21 S18 | Proficient = L24 R24 W27 S23 | Superior = L28 R29 W30 S26</div>
+              <div>OET：Competent = 各项 B | Proficient = 各项 B | Superior = 各项 A</div>
+              <div className="text-brand-600">⚠️ 注意：IELTS 6.5 属于 Competent（+0 分），不是 Proficient</div>
+            </div>
+          </Field>
           <Checkbox name="hasNAATI" label="持有 NAATI CCL 证书（+5 分）" />
           <Checkbox
             name="hasProfessionalYear"
