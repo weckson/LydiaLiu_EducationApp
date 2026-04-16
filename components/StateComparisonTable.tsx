@@ -76,12 +76,12 @@ export function StateComparisonTable({ states }: { states: StateStatus[] }) {
                   )}
                 </td>
                 <td className="py-3 pr-3 text-xs">
-                  {s.recentInvitationCutoff != null && s.recentInvitationCutoff > 0 ? (
+                  {isReasonableCutoff(s.recentInvitationCutoff) ? (
                     <span className="font-serif text-brand-600 text-base">
                       {s.recentInvitationCutoff}
                     </span>
                   ) : (
-                    <span className="font-serif text-ink-500 text-base" title="参考值">
+                    <span className="font-serif text-ink-500 text-base" title="参考估算值">
                       {getDefaultCutoff(s.state, s.program)}
                       <span className="text-[9px] text-ink-400 ml-0.5">*</span>
                     </span>
@@ -112,7 +112,10 @@ export function StateComparisonTable({ states }: { states: StateStatus[] }) {
 }
 
 /**
- * 兜底参考获邀分数（2025 年度估算，web search 数据没拿到时用）
+ * 各州各职业类别的 190/491 获邀参考分数（2025 年度，基于 IT/工程热门职业）
+ *
+ * 这是硬编码的兜底值。当 LLM 返回的分数明显不合理（< 65 或 > 100）或为空时使用。
+ * 来源：Home Affairs SkillSelect 2024-2025 邀请轮数据
  */
 function getDefaultCutoff(state: string, program: string): number {
   const defaults: Record<string, Record<string, number>> = {
@@ -126,6 +129,11 @@ function getDefaultCutoff(state: string, program: string): number {
     ACT:  { "190": 80, "491": 70 },
   };
   return defaults[state]?.[program] ?? 75;
+}
+
+/** 检查 LLM 返回的分数是否合理（65-100 区间） */
+function isReasonableCutoff(n: number | null | undefined): boolean {
+  return n != null && n >= 65 && n <= 100;
 }
 
 function StatusBadge({ status }: { status: StateStatus["openStatus"] }) {

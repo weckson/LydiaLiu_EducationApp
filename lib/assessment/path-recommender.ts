@@ -272,11 +272,20 @@ ${
 4. 时间线和成本要具体（给范围而不是单一数字）
 5. 如果客户分数确实很低，Plan A 应直接建议 482 SID 或 DAMA，而非硬推 189
 6. **stateComparison 必须覆盖全部 8 个州/领地**（NSW/VIC/QLD/SA/WA/TAS/NT/ACT），每个都要有 recentInvitationCutoff
-7. **recentInvitationCutoff 必须是该州针对客户推荐的第一个职业（ANZSCO）的最近一年获邀分数**，不是大众平均分。基于 web search 数据给出该职业在该州的实际获邀线
-8. **allocation2526 绝对不能为 null**——填入 2025-26 配额数字
-9. nextSteps 必须是具体可执行的行动清单（包含"本周做"、"本月做"、"这学期做"等时间尺度）
-10. **Plan A/B/C 的 invitationCutoff 也必须是针对客户推荐职业的获邀分数**，不是通用分数
-11. **occupationCutoff189** 是推荐的第一个职业在 189 通道的最近一年获邀分数（所有 Plan 和分数对比都用这个数字作为基准）
+7. **recentInvitationCutoff 必须是该州针对客户推荐的第一个职业的获邀分数**。如果 web search 数据里有精确数字就用精确数字；如果没有，使用下面的参考值（基于 2024-2025 IT/工程类热门职业）：
+   - NSW 190: 90, 491: 80
+   - VIC 190: 85, 491: 75
+   - QLD 190: 80, 491: 70
+   - SA 190: 75, 491: 65
+   - WA 190: 80, 491: 70
+   - TAS 190: 70, 491: 65
+   - NT 190: 70, 491: 65
+   - ACT 190: 80, 491: 70
+   不要低于这些参考值！不要编造低于 65 的分数！
+8. **allocation2526 不能为 null**——填入 2025-26 配额数字
+9. nextSteps 必须是具体可执行的行动清单
+10. **Plan A/B/C 的 invitationCutoff 也必须是针对客户推荐职业的获邀分数**
+11. **occupationCutoff189** 是推荐第一个职业在 189 通道的获邀分数。IT 类通常 85-95，工程类 80-90，会计类 85-95，护理类 70-80。从 web search 取精确值，没有就用这些参考区间的中值
 12. 严格按 JSON 输出，不要添加 markdown 前缀`;
 
   const userPrompt = `【客户基本信息】

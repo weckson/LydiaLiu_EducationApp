@@ -150,26 +150,30 @@ export default async function AssessmentReportPage({
       )}
 
       {/* 推荐职业 */}
-      {occupations.length > 0 && (
-        <section className="elegant-card p-6 md:p-8 space-y-5">
-          <div>
-            <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-1">
-              Recommended Occupations
-            </div>
-            <h2 className="font-serif text-2xl text-ink-900">
-              推荐职业评估
-            </h2>
-            <p className="text-xs text-ink-500 mt-1">
-              基于客户的学历和工作经验，Top 3 最匹配的 ANZSCO 职业代码
-            </p>
+      <section className="elegant-card p-6 md:p-8 space-y-5">
+        <div>
+          <div className="text-[10px] tracking-[0.25em] uppercase text-gold-600 mb-1">
+            Recommended Occupations
           </div>
+          <h2 className="font-serif text-2xl text-ink-900">
+            推荐职业评估
+          </h2>
+          <p className="text-xs text-ink-500 mt-1">
+            基于客户的学历和工作经验，Top 3 最匹配的 ANZSCO 职业代码
+          </p>
+        </div>
+        {occupations.length > 0 ? (
           <div className="space-y-3">
             {occupations.map((o, i) => (
               <OccupationCard key={i} occ={o} rank={i + 1} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 text-sm text-brand-700">
+            ⚠️ 职业匹配未能生成结果。可能原因：AI 返回格式异常。建议重新创建评估，或在 AI 问答中手动查询职业代码。
+          </div>
+        )}
+      </section>
 
       {/* Plan A/B/C */}
       {pathA && <PathPlanCard plan={pathA} />}

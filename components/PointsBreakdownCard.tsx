@@ -12,8 +12,10 @@ export function PointsBreakdownCard({
 }: {
   breakdown: PointsBreakdown & { occupationCutoff189?: number };
 }) {
-  // 该职业在 189 的获邀分数（来自 LLM web search），fallback 85
-  const occCutoff189 = breakdown.occupationCutoff189 ?? 85;
+  // 该职业在 189 的获邀分数（来自 LLM web search）
+  // 合理性检查：如果 LLM 返回的值 < 65 或 > 100，说明是瞎编的，用 85 兜底
+  const rawCutoff = breakdown.occupationCutoff189 ?? 85;
+  const occCutoff189 = rawCutoff >= 65 && rawCutoff <= 100 ? rawCutoff : 85;
   // 190 通常比 189 低 5-10 分（因为有州担保 +5）
   const occCutoff190 = Math.max(occCutoff189 - 10, 65);
   // 491 最低线通常是 65
