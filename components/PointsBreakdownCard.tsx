@@ -3,18 +3,21 @@ import type { PointsBreakdown } from "@/lib/assessment/types";
 /**
  * 分数明细卡片
  * 显示 189/190/491 三档总分 + 分项拆解 + 获邀参考线对比
+ *
+ * occupationCutoff189: 推荐第一职业在 189 通道的最近获邀分数（来自 web search）
+ * 190 和 491 的参考线由此推算
  */
 export function PointsBreakdownCard({
   breakdown,
 }: {
-  breakdown: PointsBreakdown;
+  breakdown: PointsBreakdown & { occupationCutoff189?: number };
 }) {
-  // 获邀分数参考（2025 数据，hardcode 作为 UI 参考线，web search 会提供更新的）
-  const refLines = {
-    "189": { min: 65, typical: 85, label: "189 获邀参考 ~85+" },
-    "190": { min: 65, typical: 75, label: "190 各州参考 ~70-85" },
-    "491": { min: 65, typical: 65, label: "491 最低线 65" },
-  };
+  // 该职业在 189 的获邀分数（来自 LLM web search），fallback 85
+  const occCutoff189 = breakdown.occupationCutoff189 ?? 85;
+  // 190 通常比 189 低 5-10 分（因为有州担保 +5）
+  const occCutoff190 = Math.max(occCutoff189 - 10, 65);
+  // 491 最低线通常是 65
+  const occCutoff491 = 65;
   const partnerHint =
     breakdown.partner === 10
       ? "单身或配偶达标"
@@ -87,24 +90,24 @@ export function PointsBreakdownCard({
           <CutoffBar
             label="189"
             score={breakdown.total189}
-            cutoff={refLines["189"].typical}
-            hint={refLines["189"].label}
+            cutoff={occCutoff189}
+            hint={`该职业 189 获邀线 ~${occCutoff189}`}
           />
           <CutoffBar
             label="190"
             score={breakdown.total190}
-            cutoff={refLines["190"].typical}
-            hint={refLines["190"].label}
+            cutoff={occCutoff190}
+            hint={`190 参考线 ~${occCutoff190}（189 线 -10）`}
           />
           <CutoffBar
             label="491"
             score={breakdown.total491}
-            cutoff={refLines["491"].typical}
-            hint={refLines["491"].label}
+            cutoff={occCutoff491}
+            hint={`491 最低线 ${occCutoff491}`}
           />
         </div>
         <div className="mt-3 text-[10px] text-ink-400">
-          ⚠️ 获邀分数线每月变动，以上为 2025 年度参考值。报告下方的 Plan A/B/C 含最新 web search 数据。
+          ⚠️ 获邀线为推荐职业的最近一年参考值（来自 web search），每月可能变动。
         </div>
       </div>
 

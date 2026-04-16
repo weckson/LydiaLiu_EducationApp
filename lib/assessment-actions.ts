@@ -76,7 +76,10 @@ export async function createAssessment(formData: FormData) {
         calculatedPoints189: report.pointsBreakdown.total189,
         calculatedPoints190: report.pointsBreakdown.total190,
         calculatedPoints491: report.pointsBreakdown.total491,
-        pointsBreakdown: JSON.stringify(report.pointsBreakdown),
+        pointsBreakdown: JSON.stringify({
+          ...report.pointsBreakdown,
+          occupationCutoff189: report.occupationCutoff189,
+        }),
         recommendedOccupations: JSON.stringify(report.recommendedOccupations),
         pathA: JSON.stringify(report.pathA),
         pathB: JSON.stringify(report.pathB),

@@ -228,8 +228,8 @@ export async function researchLatestPolicies(
   // 查询 1：州担保总体状态
   const q1 = `Australia state and territory nomination allocations 2025-26 ${ym}: which states are currently open for 190 and 491, and what are the remaining quotas? Focus on NSW, VIC, QLD, SA, WA, TAS, NT, ACT.`;
 
-  // 查询 2：最近邀请轮次
-  const q2 = `SkillSelect invitation round ${ym} minimum points cutoff for subclass 189 and 190 across common occupations including ${primaryName}.`;
+  // 查询 2：最近邀请轮次——精确到客户的职业
+  const q2 = `SkillSelect invitation round ${ym} minimum points cutoff for occupation ${primaryName} subclass 189 190 491. What was the recent invitation score specifically for this ANZSCO occupation in each state?`;
 
   const stateAllocations = await searchWeb(q1);
   const recentInvitationRounds = await searchWeb(q2);

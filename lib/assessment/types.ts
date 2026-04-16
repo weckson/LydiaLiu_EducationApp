@@ -228,6 +228,8 @@ export type AssessmentReport = {
   stateComparison: StateStatus[];
   // 最近政策
   recentPolicyUpdates: PolicyUpdate[];
+  // 推荐职业在 189 通道的获邀分数（用于分数对比进度条）
+  occupationCutoff189: number;
   // 下一步行动
   nextSteps: string[];
   // RAG 引用的知识条目 ID

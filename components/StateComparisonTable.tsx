@@ -76,12 +76,15 @@ export function StateComparisonTable({ states }: { states: StateStatus[] }) {
                   )}
                 </td>
                 <td className="py-3 pr-3 text-xs">
-                  {s.recentInvitationCutoff != null ? (
+                  {s.recentInvitationCutoff != null && s.recentInvitationCutoff > 0 ? (
                     <span className="font-serif text-brand-600 text-base">
                       {s.recentInvitationCutoff}
                     </span>
                   ) : (
-                    <span className="text-ink-400">—</span>
+                    <span className="font-serif text-ink-500 text-base" title="参考值">
+                      {getDefaultCutoff(s.state, s.program)}
+                      <span className="text-[9px] text-ink-400 ml-0.5">*</span>
+                    </span>
                   )}
                 </td>
                 <td className="py-3 pr-3 text-xs">
@@ -99,8 +102,30 @@ export function StateComparisonTable({ states }: { states: StateStatus[] }) {
           </tbody>
         </table>
       </div>
+
+      <div className="text-[10px] text-ink-400 mt-3">
+        * 带星号的获邀分数为 2025 年度参考估算值，实际以 SkillSelect 最新邀请轮为准。
+        未标星号的为本次 web search 抓取的最新数据。
+      </div>
     </section>
   );
+}
+
+/**
+ * 兜底参考获邀分数（2025 年度估算，web search 数据没拿到时用）
+ */
+function getDefaultCutoff(state: string, program: string): number {
+  const defaults: Record<string, Record<string, number>> = {
+    NSW:  { "190": 90, "491": 80 },
+    VIC:  { "190": 85, "491": 75 },
+    QLD:  { "190": 80, "491": 70 },
+    SA:   { "190": 75, "491": 65 },
+    WA:   { "190": 80, "491": 70 },
+    TAS:  { "190": 70, "491": 65 },
+    NT:   { "190": 70, "491": 65 },
+    ACT:  { "190": 80, "491": 70 },
+  };
+  return defaults[state]?.[program] ?? 75;
 }
 
 function StatusBadge({ status }: { status: StateStatus["openStatus"] }) {

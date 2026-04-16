@@ -108,6 +108,7 @@ export async function runAssessment(
     pathC: synthesisResult.pathC,
     stateComparison: synthesisResult.stateComparison,
     recentPolicyUpdates: synthesisResult.recentPolicyUpdates,
+    occupationCutoff189: synthesisResult.occupationCutoff189,
     nextSteps: synthesisResult.nextSteps,
     citedKnowledgeIds,
     tokensUsed: synthesisResult.tokensUsed,
@@ -158,6 +159,7 @@ type SynthesisOutput = {
   pathC: PathPlan;
   stateComparison: StateStatus[];
   recentPolicyUpdates: PolicyUpdate[];
+  occupationCutoff189: number;
   nextSteps: string[];
   tokensUsed: number;
 };
@@ -240,14 +242,15 @@ ${
       "stateNameZh": "新南威尔士",
       "program": "190",
       "openStatus": "open|closed|invitation-only|unknown",
-      "allocation2526": 数字或 null,
+      "allocation2526": 数字,
       "remainingQuota": "文字描述",
-      "recentInvitationCutoff": 数字或 null,
+      "recentInvitationCutoff": 数字,
       "occupationOnList": true|false,
       "notes": "该州对客户的适合度和关键点"
     },
-    ... 涵盖 NSW/VIC/QLD/SA/WA/TAS/NT/ACT 的 190 或 491
+    ... 必须涵盖 NSW/VIC/QLD/SA/WA/TAS/NT/ACT 全部 8 个州
   ],
+  "occupationCutoff189": 数字,
   "recentPolicyUpdates": [
     {
       "date": "YYYY-MM-DD",
@@ -268,9 +271,13 @@ ${
 3. 分数数字必须和给定的分项明细一致，不要自己重算
 4. 时间线和成本要具体（给范围而不是单一数字）
 5. 如果客户分数确实很低，Plan A 应直接建议 482 SID 或 DAMA，而非硬推 189
-6. stateComparison 至少覆盖 5 个主要州
-7. nextSteps 必须是具体可执行的行动清单（包含"本周做"、"本月做"、"这学期做"等时间尺度）
-8. 严格按 JSON 输出，不要添加 markdown 前缀`;
+6. **stateComparison 必须覆盖全部 8 个州/领地**（NSW/VIC/QLD/SA/WA/TAS/NT/ACT），每个都要有 recentInvitationCutoff
+7. **recentInvitationCutoff 必须是该州针对客户推荐的第一个职业（ANZSCO）的最近一年获邀分数**，不是大众平均分。基于 web search 数据给出该职业在该州的实际获邀线
+8. **allocation2526 绝对不能为 null**——填入 2025-26 配额数字
+9. nextSteps 必须是具体可执行的行动清单（包含"本周做"、"本月做"、"这学期做"等时间尺度）
+10. **Plan A/B/C 的 invitationCutoff 也必须是针对客户推荐职业的获邀分数**，不是通用分数
+11. **occupationCutoff189** 是推荐的第一个职业在 189 通道的最近一年获邀分数（所有 Plan 和分数对比都用这个数字作为基准）
+12. 严格按 JSON 输出，不要添加 markdown 前缀`;
 
   const userPrompt = `【客户基本信息】
 姓名：${input.clientName || "未提供"}
@@ -355,6 +362,7 @@ function parseSynthesisJSON(raw: string): Omit<SynthesisOutput, "tokensUsed"> {
       recentPolicyUpdates: Array.isArray(obj.recentPolicyUpdates)
         ? obj.recentPolicyUpdates.map(normalizePolicyUpdate)
         : [],
+      occupationCutoff189: Number(obj.occupationCutoff189 ?? 85),
       nextSteps: Array.isArray(obj.nextSteps)
         ? obj.nextSteps.map(String)
         : [],
@@ -450,6 +458,7 @@ function makeFallbackSynthesis(): Omit<SynthesisOutput, "tokensUsed"> {
     pathC: makeEmptyPathPlan("C", "fallback"),
     stateComparison: [],
     recentPolicyUpdates: [],
+    occupationCutoff189: 85,
     nextSteps: [],
   };
 }
