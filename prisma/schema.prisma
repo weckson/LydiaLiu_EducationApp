@@ -175,7 +175,8 @@ model Assessment {
   age             Int
   nationality     String?
   maritalStatus   String // SINGLE | MARRIED | DE_FACTO
-  partnerEligible Boolean @default(false) // 配偶是否可加分（职业评估+英语均达标）
+  partnerEligible Boolean @default(false) // 旧字段保留兼容
+  partnerSkillLevel String? // SKILLED_ENGLISH | ENGLISH_ONLY | AU_CITIZEN_PR | NONE
 
   // —— 学历 ——
   highestDegree   String // DIPLOMA | BACHELOR | MASTER | PHD

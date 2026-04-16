@@ -172,19 +172,39 @@ function calculateEducationPoints(degree: AssessmentInput["highestDegree"]): num
 }
 
 // ════════════════════════════════════════════
-// 配偶加分
+// 配偶加分（2025 官方规则）
+//
+// 官方文档：immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-independent-189/points-table
+//
+// | 情况                                  | 分数 |
+// |---------------------------------------|------|
+// | 单身 / 无配偶                          | 10   |
+// | 配偶是澳洲公民或 PR                    | 10   |
+// | 配偶有职业评估 + Competent 英语         | 10   |
+// | 配偶只有 Competent 英语（无职业评估）   | 5    |
+// | 配偶既没有英语也没有职业评估            | 0    |
 // ════════════════════════════════════════════
 function calculatePartnerPoints(
   maritalStatus: AssessmentInput["maritalStatus"],
-  partnerEligible: boolean
-): number {
-  // 单身：+10 分（视为"无配偶牵制"）
-  if (maritalStatus === "SINGLE") return 10;
-  // 已婚/事实婚姻 + 配偶 Competent 英语 + 职业评估：+10
-  if (partnerEligible) return 10;
-  // 已婚 + 配偶只有 Competent 英语（无评估）：+5
-  // 这里假设只要已婚就至少 +5（简化处理）
-  return 5;
+  partnerSkillLevel: AssessmentInput["partnerSkillLevel"]
+): { points: number; note: string } {
+  // 单身 → 自动 10 分
+  if (maritalStatus === "SINGLE") {
+    return { points: 10, note: "单身（+10 分）" };
+  }
+
+  // 有配偶 → 看 partnerSkillLevel
+  switch (partnerSkillLevel) {
+    case "AU_CITIZEN_PR":
+      return { points: 10, note: "✅ 配偶是澳洲公民或 PR（+10 分）" };
+    case "SKILLED_ENGLISH":
+      return { points: 10, note: "✅ 配偶有职业评估 + Competent 英语（+10 分）" };
+    case "ENGLISH_ONLY":
+      return { points: 5, note: "配偶只有 Competent 英语（+5 分），若完成职业评估可升到 +10" };
+    case "NONE":
+    default:
+      return { points: 0, note: "⚠️ 配偶无 Competent 英语且无职业评估（+0 分）。建议配偶考 PTE/雅思到 6.0 可 +5" };
+  }
 }
 
 // ════════════════════════════════════════════
@@ -241,17 +261,12 @@ export function calculatePoints(input: AssessmentInput): PointsBreakdown {
   if (input.hasProfessionalYear) notes.push(`✅ Professional Year（+5 分）`);
 
   // 配偶
-  const partnerPoints = calculatePartnerPoints(
+  const partnerResult = calculatePartnerPoints(
     input.maritalStatus,
-    input.partnerEligible
+    input.partnerSkillLevel
   );
-  if (input.maritalStatus === "SINGLE") {
-    notes.push(`单身（+10 分）`);
-  } else if (input.partnerEligible) {
-    notes.push(`✅ 配偶职业评估 + 英语达标（+10 分）`);
-  } else {
-    notes.push(`配偶只有基本英语（+5 分，可通过考英语/做评估提升到 +10）`);
-  }
+  const partnerPoints = partnerResult.points;
+  notes.push(partnerResult.note);
 
   // 合计基础分（不含州担保）
   const base189 =

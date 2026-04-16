@@ -8,6 +8,13 @@
 
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DE_FACTO";
 
+/** 配偶技能水平（影响加分） */
+export type PartnerSkillLevel =
+  | "SKILLED_ENGLISH" // 配偶有职业评估 + Competent 英语 → 10 分
+  | "ENGLISH_ONLY" // 配偶只有 Competent 英语 → 5 分
+  | "AU_CITIZEN_PR" // 配偶是澳洲公民/PR → 10 分
+  | "NONE"; // 配偶都不满足 → 0 分
+
 export type HighestDegree = "DIPLOMA" | "BACHELOR" | "MASTER" | "PHD";
 
 export type EnglishTestType = "IELTS" | "PTE" | "TOEFL" | "OET";
@@ -45,7 +52,8 @@ export type AssessmentInput = {
   age: number;
   nationality?: string;
   maritalStatus: MaritalStatus;
-  partnerEligible: boolean;
+  partnerEligible: boolean; // 旧字段保留
+  partnerSkillLevel: PartnerSkillLevel; // 新字段：精确配偶加分
 
   // 学历
   highestDegree: HighestDegree;

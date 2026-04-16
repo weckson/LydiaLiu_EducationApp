@@ -13,6 +13,7 @@ import type {
   WorkExperience,
   HighestDegree,
   MaritalStatus,
+  PartnerSkillLevel,
   EnglishTestType,
   TargetState,
   BudgetTier,
@@ -37,6 +38,7 @@ export async function createAssessment(formData: FormData) {
       nationality: input.nationality,
       maritalStatus: input.maritalStatus,
       partnerEligible: input.partnerEligible,
+      partnerSkillLevel: input.partnerSkillLevel,
       highestDegree: input.highestDegree,
       fieldOfStudy: input.fieldOfStudy,
       degreeCountry: input.degreeCountry,
@@ -146,14 +148,30 @@ function getBoolean(fd: FormData, name: string): boolean {
 }
 
 function parseFormDataToInput(fd: FormData): AssessmentInput {
-  // 工作经验字段：前端把多段工作序列化成 JSON 字符串
-  const workRaw = getStr(fd, "workExperience", "[]");
-  let workExperience: WorkExperience[] = [];
-  try {
-    const parsed = JSON.parse(workRaw);
-    if (Array.isArray(parsed)) workExperience = parsed;
-  } catch {
-    workExperience = [];
+  // 工作经验：新版用下拉年限，构造简化的 WorkExperience 数组（兼容旧的 splitWorkExperience）
+  const auWorkYears = getNumber(fd, "auWorkYears", 0);
+  const overseasWorkYears = getNumber(fd, "overseasWorkYears", 0);
+  const jobTitle = getStr(fd, "jobTitle") || "Skilled Worker";
+  const company = getStr(fd, "company");
+
+  const workExperience: WorkExperience[] = [];
+  if (overseasWorkYears > 0) {
+    const startYear = new Date().getFullYear() - overseasWorkYears - auWorkYears;
+    const endYear = startYear + overseasWorkYears;
+    workExperience.push({
+      jobTitle, company, country: "CN",
+      startDate: `${startYear}-01`,
+      endDate: auWorkYears > 0 ? `${endYear}-01` : "NOW",
+      hoursPerWeek: 40,
+    });
+  }
+  if (auWorkYears > 0) {
+    const startYear = new Date().getFullYear() - auWorkYears;
+    workExperience.push({
+      jobTitle, company, country: "AU",
+      startDate: `${startYear}-01`, endDate: "NOW",
+      hoursPerWeek: 40,
+    });
   }
 
   return {
@@ -164,6 +182,7 @@ function parseFormDataToInput(fd: FormData): AssessmentInput {
     nationality: getStr(fd, "nationality") || undefined,
     maritalStatus: (getStr(fd, "maritalStatus") || "SINGLE") as MaritalStatus,
     partnerEligible: getBoolean(fd, "partnerEligible"),
+    partnerSkillLevel: (getStr(fd, "partnerSkillLevel") || "NONE") as PartnerSkillLevel,
 
     highestDegree: (getStr(fd, "highestDegree") || "BACHELOR") as HighestDegree,
     fieldOfStudy: getStr(fd, "fieldOfStudy"),
