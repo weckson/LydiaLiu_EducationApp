@@ -29,13 +29,13 @@ export function PathPlanCard({ plan }: { plan: PathPlan }) {
     high: "text-green-700 bg-green-50 border-green-200",
     medium: "text-gold-700 bg-gold-50 border-gold-200",
     low: "text-brand-700 bg-brand-50 border-brand-200",
-  }[plan.feasibility];
+  }[plan.feasibility ?? "medium"] ?? "text-ink-600 bg-cream-100 border-cream-200";
 
   const feasibilityLabel = {
     high: "可行性高",
     medium: "可行性中",
     low: "可行性低",
-  }[plan.feasibility];
+  }[plan.feasibility ?? "medium"] ?? "可行性未知";
 
   return (
     <section

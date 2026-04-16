@@ -104,6 +104,7 @@ export function StateComparisonTable({ states }: { states: StateStatus[] }) {
 }
 
 function StatusBadge({ status }: { status: StateStatus["openStatus"] }) {
+  const fallback = { label: "未知", color: "bg-cream-100 text-ink-600 border-cream-200" };
   const meta = {
     open: { label: "开放", color: "bg-green-100 text-green-700 border-green-200" },
     closed: { label: "关闭", color: "bg-brand-100 text-brand-700 border-brand-200" },
@@ -111,8 +112,8 @@ function StatusBadge({ status }: { status: StateStatus["openStatus"] }) {
       label: "仅邀请",
       color: "bg-gold-100 text-gold-700 border-gold-200",
     },
-    unknown: { label: "未知", color: "bg-cream-100 text-ink-600 border-cream-200" },
-  }[status];
+    unknown: fallback,
+  }[status ?? "unknown"] ?? fallback;
   return (
     <span
       className={`text-[11px] px-2 py-0.5 rounded-full border ${meta.color}`}

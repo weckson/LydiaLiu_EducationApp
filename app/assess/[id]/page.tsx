@@ -311,12 +311,13 @@ function ImpactBadge({
 }: {
   impact: PolicyUpdate["impactToClient"];
 }) {
+  const fallback = { label: "—", color: "bg-cream-50 text-ink-400 border-cream-200" };
   const meta = {
     high: { label: "高影响", color: "bg-brand-100 text-brand-700 border-brand-200" },
     medium: { label: "中等", color: "bg-gold-100 text-gold-700 border-gold-200" },
     low: { label: "轻微", color: "bg-cream-100 text-ink-600 border-cream-200" },
     none: { label: "无关", color: "bg-cream-50 text-ink-400 border-cream-200" },
-  }[impact];
+  }[impact ?? "none"] ?? fallback;
   return (
     <span
       className={`text-[10px] px-2 py-0.5 rounded-full border flex-shrink-0 ${meta.color}`}
