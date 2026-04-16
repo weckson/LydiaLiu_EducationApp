@@ -172,7 +172,7 @@ export function AssessmentForm({
         {/* ═══ Section 3: 工作经验（简化下拉版）═══ */}
         <Section title="工作经验" subtitle="Work Experience" icon="💼">
           <div className="text-xs text-ink-500 -mt-2 mb-4">
-            选择与提名职业相关的全职工作年限（兼职按 50% 折算后选择最接近的）
+            境内工作经验必须是与提名职业（ANZSCO）相关的 skilled employment。兼职按 50% 折算。
           </div>
           <Grid cols={2}>
             <Field label="最近的职位名称">
@@ -189,31 +189,31 @@ export function AssessmentForm({
                 className="input-elegant"
               />
             </Field>
-            <Field label="澳洲境内工作年限" required>
+            <Field label="境内工作经验（须与提名职业相关）" required>
               <select
                 name="auWorkYears"
                 defaultValue="0"
                 required
                 className="input-elegant cursor-pointer"
               >
-                <option value="0">无澳洲工作经验（+0 分）</option>
+                <option value="0">无（+0 分）</option>
                 <option value="1">1-2 年（+5 分）</option>
                 <option value="3">3-4 年（+10 分）</option>
                 <option value="5">5-7 年（+15 分）</option>
-                <option value="8">8 年以上（+20 分）</option>
+                <option value="8">8 年及以上（+20 分）</option>
               </select>
             </Field>
-            <Field label="海外（非澳洲）工作年限" required>
+            <Field label="境外工作经验" required>
               <select
                 name="overseasWorkYears"
                 defaultValue="0"
                 required
                 className="input-elegant cursor-pointer"
               >
-                <option value="0">无海外工作经验（+0 分）</option>
+                <option value="0">无或不足 3 年（+0 分）</option>
                 <option value="3">3-4 年（+5 分）</option>
                 <option value="5">5-7 年（+10 分）</option>
-                <option value="8">8 年以上（+15 分）</option>
+                <option value="8">8 年及以上（+15 分）</option>
               </select>
             </Field>
           </Grid>
@@ -420,21 +420,21 @@ function ScoreReferenceModal({ onClose }: { onClose: () => void }) {
           <RefRow label="低于 Competent" value="不合格" warn />
         </RefSection>
 
-        {/* 海外工作 */}
-        <RefSection title="海外工作经验 Overseas Work">
+        {/* 境外工作 */}
+        <RefSection title="境外工作经验 Overseas Work">
           <RefRow label="不足 3 年" value="0" />
           <RefRow label="3-4 年" value="5" />
           <RefRow label="5-7 年" value="10" />
-          <RefRow label="8 年以上" value="15" highlight />
+          <RefRow label="8 年及以上" value="15" highlight />
         </RefSection>
 
-        {/* 澳洲工作 */}
-        <RefSection title="澳洲工作经验 Australian Work">
+        {/* 境内工作 */}
+        <RefSection title="境内工作经验 Australian Work（须与提名职业相关）">
           <RefRow label="不足 1 年" value="0" />
           <RefRow label="1-2 年" value="5" />
           <RefRow label="3-4 年" value="10" />
           <RefRow label="5-7 年" value="15" />
-          <RefRow label="8 年以上" value="20" highlight />
+          <RefRow label="8 年及以上" value="20" highlight />
         </RefSection>
 
         {/* 学历 */}
