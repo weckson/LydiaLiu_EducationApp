@@ -248,3 +248,48 @@ model PolicyCache {
   @@index([cacheKey])
   @@index([expiresAt])
 }
+
+// ═══════════════════════════════════════════
+// 签证文件清单
+// ═══════════════════════════════════════════
+
+/// 签证材料清单模板（种子数据，每种签证一套）
+model ChecklistTemplate {
+  id       String   @id @default(cuid())
+  visaType String   @unique // "500" | "189" | "190" | "491" | "482" | "186" | "820" | "143" | "600" | "485"
+  visaName String
+  items    String // JSON: [{category, name, nameEn, required, note}]
+  updatedAt DateTime @updatedAt
+}
+
+/// 客户具体清单（从模板生成，可打勾跟踪）
+model ClientChecklist {
+  id           String   @id @default(cuid())
+  clientName   String?
+  visaType     String
+  visaName     String
+  items        String // JSON: [{name, nameEn, category, required, checked, note}]
+  assessmentId String? // 可关联到评估
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+// ═══════════════════════════════════════════
+// 社交媒体内容
+// ═══════════════════════════════════════════
+
+model ContentPost {
+  id            String   @id @default(cuid())
+  platform      String // XIAOHONGSHU | WECHAT | INSTAGRAM
+  topic         String
+  title         String
+  content       String
+  hashtags      String? // JSON: string[]
+  sourceEntryId String? // 关联知识条目
+  createdAt     DateTime @default(now())
+
+  @@index([platform])
+  @@index([createdAt])
+}

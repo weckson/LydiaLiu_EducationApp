@@ -15,6 +15,7 @@ import { RESTAURANTS } from "./seed/restaurants";
 import { RESTAURANTS_V2 } from "./seed/restaurants-v2";
 import { DISHES } from "./seed/dishes";
 import { DISHES_V2 } from "./seed/dishes-v2";
+import { CHECKLIST_TEMPLATES } from "./seed/checklists";
 import type { SeedEntry } from "./seed/types";
 
 const prisma = new PrismaClient();
@@ -166,6 +167,35 @@ async function seedDishes() {
   return { created, skipped };
 }
 
+// ═══════════════════════════════════════════
+// 签证清单模板
+// ═══════════════════════════════════════════
+async function seedChecklists() {
+  console.log(`\n▶ 开始导入 签证清单模板（${CHECKLIST_TEMPLATES.length} 套）`);
+  let created = 0;
+  let skipped = 0;
+
+  for (const t of CHECKLIST_TEMPLATES) {
+    const existing = await prisma.checklistTemplate.findUnique({
+      where: { visaType: t.visaType },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    await prisma.checklistTemplate.create({
+      data: {
+        visaType: t.visaType,
+        visaName: t.visaName,
+        items: JSON.stringify(t.items),
+      },
+    });
+    created++;
+  }
+  console.log(`◀ 签证清单模板：新增 ${created}，跳过 ${skipped}`);
+  return { created, skipped };
+}
+
 async function main() {
   console.log("═════════════════════════════════════════");
   console.log(" Lydia 专属留学 App · 种子数据导入");
@@ -185,6 +215,7 @@ async function main() {
   const snacks = await seedSnacks();
   const restaurants = await seedRestaurants();
   const dishes = await seedDishes();
+  const checklists = await seedChecklists();
 
   const totalCreated =
     visa.created +
@@ -194,7 +225,8 @@ async function main() {
     uni.created +
     snacks.created +
     restaurants.created +
-    dishes.created;
+    dishes.created +
+    checklists.created;
   const totalSkipped =
     visa.skipped +
     visaV2.skipped +
@@ -203,7 +235,8 @@ async function main() {
     uni.skipped +
     snacks.skipped +
     restaurants.skipped +
-    dishes.skipped;
+    dishes.skipped +
+    checklists.skipped;
 
   console.log("\n═════════════════════════════════════════");
   console.log(` 全部完成：新增 ${totalCreated} 条，跳过 ${totalSkipped} 条`);
