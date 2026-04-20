@@ -372,8 +372,8 @@ const EMOTION_STYLES: Record<Emotion, string> = {
 
 const AUDIENCE_HOOKS: Record<Audience, string> = {
   ANY: "通用受众，不做特别的语气调整。",
-  PROSPECTIVE_STUDENT: "目标受众：还在国内、准备申请留学的学生。语气要帮助他们理解澳洲留学的全貌，解决"如何开始"的疑惑。",
-  CURRENT_STUDENT: "目标受众：已在澳洲留学的学生。他们关注：打工、实习、毕业路径、移民规划。语气可以更"同类"感。",
+  PROSPECTIVE_STUDENT: "目标受众：还在国内、准备申请留学的学生。语气要帮助他们理解澳洲留学的全貌，解决『如何开始』的疑惑。",
+  CURRENT_STUDENT: "目标受众：已在澳洲留学的学生。他们关注：打工、实习、毕业路径、移民规划。语气可以更『同类』感。",
   GRADUATE: "目标受众：刚毕业或即将毕业的留学生。他们焦虑的是：485 怎么用、工作怎么找、移民分数怎么凑。",
   WORKING_MIGRANT: "目标受众：在澳工作、希望尽快拿 PR 的人。关注：州担保、雇主担保、分数提升、职业评估。",
   PARENTS: "目标受众：留学生家长（可能不在澳洲）。语气要相对正式、重安全、重投入产出。",
