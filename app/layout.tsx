@@ -49,6 +49,7 @@ export default function RootLayout({
             </Link>
             <nav className="flex items-center gap-1 text-sm">
               <NavLink href="/knowledge">知识库</NavLink>
+              <NavLink href="/career-match">职业</NavLink>
               <NavLink href="/assess">评估</NavLink>
               <NavLink href="/checklist">清单</NavLink>
               <NavLink href="/content">内容</NavLink>

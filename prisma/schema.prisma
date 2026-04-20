@@ -293,3 +293,41 @@ model ContentPost {
   @@index([platform])
   @@index([createdAt])
 }
+
+// ═══════════════════════════════════════════
+// 职业评估匹配工具（独立工具，不需要英语/年龄等 EOI 数据）
+// ═══════════════════════════════════════════
+
+model CareerMatch {
+  id String @id @default(cuid())
+
+  // —— 客户基础（可选，用于档案）——
+  clientName String?
+
+  // —— 学历 ——
+  highestDegree   String // DIPLOMA | BACHELOR | MASTER | PHD
+  fieldOfStudy   String  // 详细专业名
+  degreeCountry  String? // CN / AU / 其他
+  graduationYear Int?
+
+  // —— 工作和实习经验（JSON 数组）——
+  workExperience String   // JSON: [{jobTitle, company, country, durationYears, description, isInternship}]
+
+  // —— 其他相关信息 ——
+  certifications      String? // 持有的证书（如 CFA、PMP、护士执照等）
+  australianStudy     Boolean @default(false)
+  notes               String? // 自由文本，客户的其他补充
+
+  // —— 计算结果 ——
+  status            String  @default("PROCESSING") // PROCESSING | DONE | FAILED | UNMATCHED
+  matchedOccupations String? // JSON: 匹配到的职业列表（详细）
+  unmatchedReason   String? // 如果一个都匹配不上的原因
+  summary           String? // 整体总结
+  tokensUsed        Int?
+  errorMessage      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
