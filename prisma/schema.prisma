@@ -281,16 +281,22 @@ model ClientChecklist {
 // ═══════════════════════════════════════════
 
 model ContentPost {
-  id            String   @id @default(cuid())
-  platform      String // XIAOHONGSHU | WECHAT | INSTAGRAM
-  topic         String
-  title         String
-  content       String
-  hashtags      String? // JSON: string[]
-  sourceEntryId String? // 关联知识条目
-  createdAt     DateTime @default(now())
+  id               String   @id @default(cuid())
+  platform         String // XIAOHONGSHU | WECHAT | INSTAGRAM | DOUYIN | ZHIHU
+  topic            String
+  title            String
+  content          String
+  hashtags         String? // JSON: string[]
+  emotion          String? // 情绪/意图：ANXIETY | INSPIRE | INFO | ...
+  audience         String? // 目标受众：PROSPECTIVE_STUDENT | PARENTS | ...
+  titleVariants    String? // JSON: 3 个备选标题
+  referenceSources String? // JSON: web search 引用来源
+  sourceEntryId    String? // 关联知识条目
+  tokensUsed       Int?
+  createdAt        DateTime @default(now())
 
   @@index([platform])
+  @@index([emotion])
   @@index([createdAt])
 }
 
